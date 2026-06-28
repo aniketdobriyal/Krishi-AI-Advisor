@@ -99,6 +99,26 @@ To prevent hallucinations and minimize risk to local crops, the advisor runs und
 
 ---
 
+## 🔌 REST API Endpoints
+
+The Express backend exposes the following REST APIs under the `/api` prefix:
+
+| Method | Endpoint | Description | Status Codes |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/crops` | Retrieves list of all supported crops | `200` |
+| **GET** | `/api/diseases` | Retrieves all plant diseases | `200` |
+| **GET** | `/api/diseases/:id` | Retrieves details of a specific disease by ID | `200`, `404` |
+| **GET** | `/api/pests` | Retrieves all crop insect pests profiles | `200` |
+| **GET** | `/api/post-harvest` | Retrieves post-harvest storage/transit checklists | `200` |
+| **POST** | `/api/chat` | AI Advisor prompt query (uses Gemini or offline matcher) | `200`, `400` |
+| **GET** | `/api/history` | Retrieves in-memory saved chat sessions | `200` |
+| **POST** | `/api/history` | Saves or updates a chat session | `200` (update), `201` (create), `400` |
+| **DELETE** | `/api/history/:id` | Deletes a saved chat session from the server | `204`, `404` |
+| **GET** | `/api/search?q=` | Text search across crops, diseases, and pests | `200`, `400` |
+| **GET** | `/api/config` | Returns whether the Gemini API key is configured | `200` |
+
+---
+
 ## 📁 Repository Structure
 
 ```
