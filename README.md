@@ -23,20 +23,20 @@ The application provides supervisors with instant, actionable guidance on crop d
 
 ## 🛠️ Technology Stack
 
-*   **Core**: React 19 & Vite 8 (ESM setup)
-*   **Styling**: Tailwind CSS v4 (Harmony green-accented SaaS theme)
-*   **Animations**: Framer Motion 12 (Micro-animations and layout transitions)
+*   **Frontend**: React 19 & Vite 8 (ESM setup), Axios
+*   **Backend**: Node.js & Express.js MVC Architecture
+*   **Styling**: Tailwind CSS v4 (Harmony green-accented theme)
+*   **Animations**: Framer Motion 12 (Micro-animations and transitions)
 *   **Icons**: Lucide React
-*   **Integration**: Client-side Gemini API Integration (`@google/generative-ai`)
+*   **Integration**: Google Generative AI Node SDK (`@google/generative-ai`)
+*   **Dev Utilities**: Nodemon, CORS, dotenv
 
 ---
 
 ## 🛡️ Data Privacy & Security Model
 
-> [!IMPORTANT]
-> **Credential Storage Policy**: For demonstration purposes, the Gemini developer API key is stored locally inside the user's browser (`localStorage`). No conversation transcripts, personal details, or API keys are transmitted to any external backend databases. 
-> 
-> *For production deployments, API queries must route through a secure backend service where credentials are stored safely in server-side environment variables instead of exposing them to the client.*
+> [!NOTE]
+> **Secure Credential Model**: As of Week 4, the developer Gemini API key is stored securely in the server-side environment variables (`/backend/.env`). The React frontend no longer exposes or stores developer keys in `localStorage`, satisfying security guidelines. All queries route through our secure Express gateway.
 
 ---
 
@@ -56,7 +56,7 @@ To prevent hallucinations and minimize risk to local crops, the advisor runs und
 *   Node.js (v18.x or higher recommended)
 *   npm (or yarn)
 
-### Installation
+### Installation & Setup
 
 1.  Clone the repository:
     ```bash
@@ -64,31 +64,38 @@ To prevent hallucinations and minimize risk to local crops, the advisor runs und
     cd Krishi-AI-Advisor
     ```
 
-2.  Navigate to the frontend directory:
+2.  **Backend Setup**:
+    Navigate to the backend directory:
     ```bash
-    cd frontend
-    ```
-
-3.  Install dependencies:
-    ```bash
+    cd backend
     npm install
     ```
+    Create a `.env` file by copying the example template:
+    ```bash
+    cp .env.example .env
+    ```
+    Open the `.env` file and input your Gemini API key:
+    ```env
+    GEMINI_API_KEY=AI_zaSyYourKeyHere
+    PORT=5000
+    ```
+    Start the backend server:
+    ```bash
+    npm run dev
+    ```
+    The server will start listening on [http://localhost:5000](http://localhost:5000).
 
-### Running Locally
-
-To start the local Vite development server:
-```bash
-npm run dev
-```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-### Production Build
-
-To build the static application assets:
-```bash
-npm run build
-```
-Vite will package compilation assets into a single clean JS bundle and CSS file under the `/dist` directory.
+3.  **Frontend Setup**:
+    Open a new terminal window, and navigate to the frontend directory:
+    ```bash
+    cd frontend
+    npm install
+    ```
+    Start the frontend dev server:
+    ```bash
+    npm run dev
+    ```
+    Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
@@ -96,24 +103,30 @@ Vite will package compilation assets into a single clean JS bundle and CSS file 
 
 ```
 Krishi-AI-Advisor/
-├── .gitignore            # Git exclusion rules
-├── README.md             # Project documentation (this file)
-└── frontend/             # React Vite client code
-    ├── .gitignore        # Client exclusion rules
-    ├── index.html        # Main HTML entry
-    ├── package.json      # Dependencies and scripts
-    ├── vite.config.js    # Vite configuration
-    ├── public/           # Static icons and assets
+├── W4_APICollection_TBI-26100505.json            # Postman REST collection
+├── W4_FrontendBackendConnection_TBI-26100505.pdf  # PDF Verification Report
+├── backend/             # Express.js MVC backend
+│   ├── .env.example     # Environment template
+│   ├── .gitignore       # Exclusion rules (node_modules, .env)
+│   ├── package.json     # Scripts and server dependencies
+│   └── src/
+│       ├── app.js       # Middleware & App configuration
+│       ├── server.js    # Entrypoint to spawn HTTP server
+│       ├── config/
+│       │   ├── db.js    # In-memory crop advisory database state
+│       │   └── gemini.js# Generative AI client initialization
+│       ├── controllers/ # HTTP controller handlers
+│       ├── services/    # Business services and AI/DB operations
+│       ├── routes/      # REST endpoint mappings
+│       └── middleware/  # Error handlers and guardrails
+└── frontend/            # React Vite client code
+    ├── .gitignore       # Client exclusion rules
+    ├── package.json     # Client scripts and dependencies
+    ├── vite.config.js   # Vite config
     └── src/
-        ├── App.jsx       # Layout shell and core state router
-        ├── index.css     # Tailwind imports and animations
+        ├── App.jsx      # UI shell, API connections and states
+        ├── api.js       # Axios base instance configuration
         ├── main.jsx      # React entrypoint
-        ├── data.js       # Localized crop, disease, and post-harvest database
-        ├── gemini.js     # Gemini API handler & offline fallback parser
+        ├── data.js       # UI static texts and translations
         └── components/   # Modular dashboard views
-            ├── DashboardOverview.jsx   # Stats cards, warnings & bulletins
-            ├── ChatAssistant.jsx       # Chat window, Voice & TTS synthesis
-            ├── Guides.jsx              # Disease details modals & checklists
-            ├── ChatHistoryView.jsx     # Saved conversation lists
-            └── SettingsView.jsx        # Credentials and temperature adjustments
 ```

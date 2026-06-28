@@ -1,0 +1,330 @@
+{
+  "info": {
+    "_postman_id": "8c5cbfa4-89c7-4b7c-bbd6-8fd7e00505b4",
+    "name": "Krishi AI Advisor API",
+    "description": "Postman collection for Krishi AI Advisor Express.js backend REST endpoints (Week 4 deliverables).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "System Configuration & Config Check",
+      "item": [
+        {
+          "name": "GET Config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/config",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "config"
+              ]
+            },
+            "description": "Checks if the Gemini API Key is configured on the backend server."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Crops Directory",
+      "item": [
+        {
+          "name": "GET Crops",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/crops",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "crops"
+              ]
+            },
+            "description": "Retrieves the list of all configured agricultural crops in the advisory database."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Diseases Directory",
+      "item": [
+        {
+          "name": "GET Diseases",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/diseases",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "diseases"
+              ]
+            },
+            "description": "Retrieves the list of all crop diseases in the system."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Disease by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/diseases/late-blight",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "diseases",
+                "late-blight"
+              ]
+            },
+            "description": "Retrieves details of a specific crop disease by its unique identifier (e.g. late-blight)."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Disease by ID (404 Error Case)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/diseases/non-existent-id",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "diseases",
+                "non-existent-id"
+              ]
+            },
+            "description": "Verifies that seeking a non-existent disease ID returns a proper 404 Not Found error."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pests Management",
+      "item": [
+        {
+          "name": "GET Pests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/pests",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "pests"
+              ]
+            },
+            "description": "Retrieves the list of all crop insect pests profile records."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Post-Harvest Compliance",
+      "item": [
+        {
+          "name": "GET Post-Harvest Guides",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/post-harvest",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "post-harvest"
+              ]
+            },
+            "description": "Retrieves packaging, cleaning, and storage advisory checkpoints."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Global Search Engine",
+      "item": [
+        {
+          "name": "GET Search Crops/Diseases/Pests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/search?q=tomato",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "tomato",
+                  "description": "The search keyword query"
+                }
+              ]
+            },
+            "description": "Filters crops, diseases, and pests based on search keywords matching names, pathogens, or symptoms."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Chat Diagnostics",
+      "item": [
+        {
+          "name": "POST Chat Advisor Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"My tomato leaves have yellow spots. What could be the reason?\",\n  \"isHindi\": false,\n  \"temp\": 0.2\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/chat",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "chat"
+              ]
+            },
+            "description": "Submits a query to the AI advisor. Utilizes live Gemini generation if GEMINI_API_KEY is defined in .env, otherwise defaults to local keywords matching diagnostics."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Chat History logs",
+      "item": [
+        {
+          "name": "GET Saved Chat Sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/history",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "history"
+              ]
+            },
+            "description": "Retrieves all saved diagnostic advisor sessions in-memory."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Save/Update Chat Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"hist-test-postman\",\n  \"titleEn\": \"Postman Diagnostic session\",\n  \"titleHi\": \"पोस्टमैन सत्र\",\n  \"messages\": [\n    {\n      \"sender\": \"user\",\n      \"text\": \"What causes late blight?\"\n    },\n    {\n      \"sender\": \"ai\",\n      \"isAdvisory\": true,\n      \"advisory\": {\n        \"problem\": \"Late Blight\",\n        \"causes\": \"Phytophthora infestans fungus\",\n        \"actions\": \"Spray copper fungicide\",\n        \"precautions\": \"Avoid overhead irrigation\",\n        \"disclaimer\": \"Verify locally\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/history",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "history"
+              ]
+            },
+            "description": "Saves a new chat history session or updates an existing one if the ID matches."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Saved Chat Session",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/history/hist-test-postman",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "history",
+                "hist-test-postman"
+              ]
+            },
+            "description": "Deletes a saved chat history session from the in-memory store by ID (returns 204 No Content)."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
