@@ -2,15 +2,16 @@ import React, { useState, useEffect } from "react";
 import { 
   LayoutDashboard, MessageSquare, ShieldAlert, Sprout, Leaf, 
   History, Settings, Languages, Sun, Moon, Bell, Search, 
-  Menu, X, ChevronDown, Check, LogOut, ShieldCheck
+  Menu, X, ChevronDown, Check, LogOut, ShieldCheck, RefreshCw, AlertCircle
 } from "lucide-react";
 
-import { TRANSLATIONS, MOCK_HISTORY } from "./data";
+import { TRANSLATIONS } from "./data";
 import DashboardOverview from "./components/DashboardOverview";
 import ChatAssistant from "./components/ChatAssistant";
 import Guides from "./components/Guides";
 import ChatHistoryView from "./components/ChatHistoryView";
 import SettingsView from "./components/SettingsView";
+import API from "./api";
 
 export default function App() {
   // Global States
@@ -18,7 +19,7 @@ export default function App() {
   const [language, setLanguage] = useState(() => localStorage.getItem("crop_advisor_lang") || "en");
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("crop_advisor_dark") === "true");
   
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem("crop_advisor_api_key") || "");
+  const [apiKey, setApiKey] = useState("");
   const [temp, setTemp] = useState(() => {
     const t = localStorage.getItem("crop_advisor_temp");
     return t ? parseFloat(t) : 0.2;
@@ -31,11 +32,38 @@ export default function App() {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const [historyList, setHistoryList] = useState(() => {
-    const h = localStorage.getItem("crop_advisor_history");
-    if (h) return JSON.parse(h);
-    return MOCK_HISTORY;
-  });
+  const [historyList, setHistoryList] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [apiError, setApiError] = useState(null);
+
+  // Initialize application and fetch database values
+  const initApp = async () => {
+    try {
+      setLoadingHistory(true);
+      setApiError(null);
+      
+      // Fetch server key configuration
+      const configRes = await API.get("/config");
+      if (configRes.data.hasGeminiKey) {
+        setApiKey("configured");
+      } else {
+        setApiKey("");
+      }
+
+      // Fetch saved sessions
+      const historyRes = await API.get("/history");
+      setHistoryList(historyRes.data);
+    } catch (err) {
+      console.error("Initialization error:", err);
+      setApiError("Could not connect to the backend server. Please verify it is running on http://localhost:5000.");
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    initApp();
+  }, []);
 
   // Apply dark mode on state change
   useEffect(() => {
@@ -92,7 +120,7 @@ export default function App() {
     return stats;
   };
 
-  const handleSaveConversation = () => {
+  const handleSaveConversation = async () => {
     if (messages.length === 0) return;
     
     // Find first user message for title
@@ -100,37 +128,28 @@ export default function App() {
     const titleEn = `Session: ${firstUserMsg.slice(0, 30)}...`;
     const titleHi = `सत्र: ${firstUserMsg.slice(0, 30)}...`;
 
-    let updatedHistory;
-    if (activeChatId) {
-      // Update existing conversation
-      updatedHistory = historyList.map(h => {
-        if (h.id === activeChatId) {
-          return {
-            ...h,
-            messages: [...messages],
-            date: new Date().toISOString()
-          };
-        }
-        return h;
-      });
-    } else {
-      // Create new conversation
-      const newId = `hist-${Date.now()}`;
-      const newChat = {
-        id: newId,
-        titleEn,
-        titleHi,
-        date: new Date().toISOString(),
-        messages: [...messages]
-      };
-      updatedHistory = [newChat, ...historyList];
-      setActiveChatId(newId); // mark active session as saved
-    }
+    const payload = {
+      id: activeChatId,
+      titleEn,
+      titleHi,
+      messages
+    };
 
-    setHistoryList(updatedHistory);
-    localStorage.setItem("crop_advisor_history", JSON.stringify(updatedHistory));
-    
-    alert(t.chatSavedSuccess);
+    try {
+      const response = await API.post("/history", payload);
+      const savedSession = response.data;
+      
+      if (activeChatId) {
+        setHistoryList(prev => prev.map(h => h.id === activeChatId ? savedSession : h));
+      } else {
+        setHistoryList(prev => [savedSession, ...prev]);
+        setActiveChatId(savedSession.id);
+      }
+      alert(t.chatSavedSuccess);
+    } catch (err) {
+      console.error("Failed to save chat:", err);
+      alert(language === "en" ? "Failed to save conversation on backend." : "बातचीत बैकएंड पर सहेजने में विफल रही।");
+    }
   };
 
   const onLoadChat = (chat) => {
@@ -139,15 +158,19 @@ export default function App() {
     setView("chat");
   };
 
-  const onDeleteChat = (chatId) => {
-    const updatedHistory = historyList.filter(h => h.id !== chatId);
-    setHistoryList(updatedHistory);
-    localStorage.setItem("crop_advisor_history", JSON.stringify(updatedHistory));
+  const onDeleteChat = async (chatId) => {
+    try {
+      await API.delete(`/history/${chatId}`);
+      setHistoryList(prev => prev.filter(h => h.id !== chatId));
 
-    // If the active chat is deleted, clear current viewport
-    if (chatId === activeChatId) {
-      setMessages([]);
-      setActiveChatId(null);
+      // If the active chat is deleted, clear current viewport
+      if (chatId === activeChatId) {
+        setMessages([]);
+        setActiveChatId(null);
+      }
+    } catch (err) {
+      console.error("Failed to delete chat:", err);
+      alert(language === "en" ? "Failed to delete conversation on backend." : "बातचीत बैकएंड से हटाने में विफल रही।");
     }
   };
 
@@ -391,64 +414,92 @@ export default function App() {
 
         {/* View Content Frame */}
         <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto overflow-y-auto">
-          {view === "dashboard" && (
-            <DashboardOverview 
-              t={t} 
-              stats={getStats()} 
-              setView={setView} 
-              setChatQuery={setChatQuery} 
-            />
-          )}
+          {apiError ? (
+            <div className="rounded-2xl border border-red-200 dark:border-red-950/60 bg-red-50/50 dark:bg-red-950/10 p-6 text-center max-w-xl mx-auto space-y-4 my-10 animate-fadeIn">
+              <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
+              <h3 className="text-base font-bold text-red-800 dark:text-red-300">
+                {language === "en" ? "Connection Error" : "कनेक्शन त्रुटि"}
+              </h3>
+              <p className="text-xs text-red-600 dark:text-red-405 leading-relaxed">
+                {apiError}
+              </p>
+              <button
+                onClick={initApp}
+                className="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 text-white px-4 py-2 text-xs font-semibold cursor-pointer transition shadow-sm mx-auto"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                {language === "en" ? "Retry Connection" : "पुनः प्रयास करें"}
+              </button>
+            </div>
+          ) : loadingHistory ? (
+            <div className="flex flex-col items-center justify-center py-20 space-y-3">
+              <RefreshCw className="h-8 w-8 text-emerald-600 dark:text-emerald-400 animate-spin" />
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                {language === "en" ? "Connecting to agricultural advisor server..." : "कृषि सलाहकार सर्वर से जुड़ रहा है..."}
+              </span>
+            </div>
+          ) : (
+            <>
+              {view === "dashboard" && (
+                <DashboardOverview 
+                  t={t} 
+                  stats={getStats()} 
+                  setView={setView} 
+                  setChatQuery={setChatQuery} 
+                />
+              )}
 
-          {view === "chat" && (
-            <ChatAssistant
-              t={t}
-              messages={messages}
-              setMessages={setMessages}
-              apiKey={apiKey}
-              onSaveConversation={handleSaveConversation}
-              chatQuery={chatQuery}
-              setChatQuery={setChatQuery}
-              onNewChat={() => {
-                setMessages([]);
-                setActiveChatId(null);
-              }}
-            />
-          )}
+              {view === "chat" && (
+                <ChatAssistant
+                  t={t}
+                  messages={messages}
+                  setMessages={setMessages}
+                  apiKey={apiKey}
+                  onSaveConversation={handleSaveConversation}
+                  chatQuery={chatQuery}
+                  setChatQuery={setChatQuery}
+                  onNewChat={() => {
+                    setMessages([]);
+                    setActiveChatId(null);
+                  }}
+                />
+              )}
 
-          {view === "disease" && (
-            <Guides t={t} activeSubTab="disease" />
-          )}
+              {view === "disease" && (
+                <Guides t={t} activeSubTab="disease" />
+              )}
 
-          {view === "pest" && (
-            <Guides t={t} activeSubTab="pest" />
-          )}
+              {view === "pest" && (
+                <Guides t={t} activeSubTab="pest" />
+              )}
 
-          {view === "post-harvest" && (
-            <Guides t={t} activeSubTab="post-harvest" />
-          )}
+              {view === "post-harvest" && (
+                <Guides t={t} activeSubTab="post-harvest" />
+              )}
 
-          {view === "history" && (
-            <ChatHistoryView
-              t={t}
-              historyList={historyList}
-              onLoadChat={onLoadChat}
-              onDeleteChat={onDeleteChat}
-            />
-          )}
+              {view === "history" && (
+                <ChatHistoryView
+                  t={t}
+                  historyList={historyList}
+                  onLoadChat={onLoadChat}
+                  onDeleteChat={onDeleteChat}
+                />
+              )}
 
-          {view === "settings" && (
-            <SettingsView
-              t={t}
-              apiKey={apiKey}
-              setApiKey={setApiKey}
-              temp={temp}
-              setTemp={setTemp}
-              onSave={(key, val) => {
-                setApiKey(key);
-                setTemp(val);
-              }}
-            />
+              {view === "settings" && (
+                <SettingsView
+                  t={t}
+                  apiKey={apiKey}
+                  setApiKey={setApiKey}
+                  temp={temp}
+                  setTemp={setTemp}
+                  onSave={(key, val) => {
+                    setApiKey(key);
+                    setTemp(val);
+                  }}
+                />
+              )}
+            </>
           )}
         </main>
       </div>

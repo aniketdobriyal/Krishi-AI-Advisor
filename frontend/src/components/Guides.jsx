@@ -1,9 +1,16 @@
-import React, { useState } from "react";
-import { Search, X, CheckSquare, Square, Info, ShieldAlert, Sprout, Leaf, ArrowRight, Eye, ClipboardList } from "lucide-react";
-import { DISEASES, PESTS, POST_HARVEST_GUIDES, CROPS } from "../data";
+import React, { useState, useEffect } from "react";
+import { Search, X, CheckSquare, Square, Info, ShieldAlert, Sprout, Leaf, ArrowRight, Eye, ClipboardList, RefreshCw, AlertCircle } from "lucide-react";
+import API from "../api";
 
 export default function Guides({ t, activeSubTab }) {
   // activeSubTab can be: "disease", "pest", "post-harvest"
+  const [crops, setCrops] = useState([]);
+  const [diseases, setDiseases] = useState([]);
+  const [pests, setPests] = useState([]);
+  const [postHarvestGuides, setPostHarvestGuides] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCropFilter, setSelectedCropFilter] = useState("all");
   const [selectedDisease, setSelectedDisease] = useState(null);
@@ -21,8 +28,33 @@ export default function Guides({ t, activeSubTab }) {
 
   const isHindi = t.activeLanguage === "Hindi";
 
+  useEffect(() => {
+    const fetchGuidesData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [cropsRes, diseasesRes, pestsRes, postHarvestRes] = await Promise.all([
+          API.get("/crops"),
+          API.get("/diseases"),
+          API.get("/pests"),
+          API.get("/post-harvest")
+        ]);
+        setCrops(cropsRes.data);
+        setDiseases(diseasesRes.data);
+        setPests(pestsRes.data);
+        setPostHarvestGuides(postHarvestRes.data);
+      } catch (err) {
+        console.error("Failed to load guides:", err);
+        setError(isHindi ? "मार्गदर्शिका डेटा लोड करने में विफल।" : "Failed to load guides data from server.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGuidesData();
+  }, [isHindi]);
+
   // Filter Diseases
-  const filteredDiseases = DISEASES.filter(d => {
+  const filteredDiseases = diseases.filter(d => {
     const matchesSearch = isHindi
       ? d.nameHi.toLowerCase().includes(searchQuery.toLowerCase()) || d.pathogen.toLowerCase().includes(searchQuery.toLowerCase())
       : d.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) || d.pathogen.toLowerCase().includes(searchQuery.toLowerCase());
@@ -32,7 +64,7 @@ export default function Guides({ t, activeSubTab }) {
   });
 
   // Filter Pests
-  const filteredPests = PESTS.filter(p => {
+  const filteredPests = pests.filter(p => {
     const matchesSearch = isHindi
       ? p.nameHi.toLowerCase().includes(searchQuery.toLowerCase()) || p.descriptionHi.toLowerCase().includes(searchQuery.toLowerCase())
       : p.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) || p.descriptionEn.toLowerCase().includes(searchQuery.toLowerCase());
@@ -70,7 +102,7 @@ export default function Guides({ t, activeSubTab }) {
           >
             {t.allCrops}
           </button>
-          {CROPS.map(c => (
+          {crops.map(c => (
             <button
               key={c.id}
               onClick={() => setSelectedCropFilter(c.id)}
@@ -97,7 +129,7 @@ export default function Guides({ t, activeSubTab }) {
           {filteredDiseases.map(d => {
             const cropNames = d.cropIds
               .map(cid => {
-                const cr = CROPS.find(x => x.id === cid);
+                const cr = crops.find(x => x.id === cid);
                 return cr ? (isHindi ? cr.nameHi : cr.nameEn) : "";
               })
               .join(", ");
@@ -189,7 +221,7 @@ export default function Guides({ t, activeSubTab }) {
                 </span>
                 <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
                   {selectedDisease.cropIds.map(cid => {
-                    const cr = CROPS.find(x => x.id === cid);
+                    const cr = crops.find(x => x.id === cid);
                     return cr ? (isHindi ? cr.nameHi : cr.nameEn) : "";
                   }).join(", ")}
                 </p>
@@ -269,7 +301,7 @@ export default function Guides({ t, activeSubTab }) {
           >
             {t.allCrops}
           </button>
-          {CROPS.map(c => (
+          {crops.map(c => (
             <button
               key={c.id}
               onClick={() => setSelectedCropFilter(c.id)}
@@ -296,7 +328,7 @@ export default function Guides({ t, activeSubTab }) {
           {filteredPests.map(p => {
             const cropNames = p.cropIds
               .map(cid => {
-                const cr = CROPS.find(x => x.id === cid);
+                const cr = crops.find(x => x.id === cid);
                 return cr ? (isHindi ? cr.nameHi : cr.nameEn) : "";
               })
               .join(", ");
@@ -356,7 +388,7 @@ export default function Guides({ t, activeSubTab }) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Loop all categories */}
-          {POST_HARVEST_GUIDES.map(guide => (
+          {postHarvestGuides.map(guide => (
             <div
               key={guide.id}
               className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-4"
@@ -435,10 +467,27 @@ export default function Guides({ t, activeSubTab }) {
         </p>
       </div>
 
-      {/* Dynamic View rendering */}
-      {activeSubTab === "disease" && renderDiseaseGuide()}
-      {activeSubTab === "pest" && renderPestGuide()}
-      {activeSubTab === "post-harvest" && renderPostHarvestGuide()}
+      {/* Loading / Error / Content */}
+      {error ? (
+        <div className="rounded-2xl border border-red-200 dark:border-red-950/60 bg-red-50/50 dark:bg-red-950/10 p-5 text-center flex items-center justify-center gap-3 text-red-700 dark:text-red-400">
+          <AlertCircle className="h-5 w-5 animate-pulse" />
+          <span className="text-xs font-semibold">{error}</span>
+        </div>
+      ) : loading ? (
+        <div className="flex justify-center items-center py-16">
+          <RefreshCw className="h-6 w-6 text-emerald-600 dark:text-emerald-400 animate-spin" />
+          <span className="ml-2 text-xs text-slate-500 dark:text-slate-400 font-medium font-sans">
+            {isHindi ? "मार्गदर्शिका लोड हो रही है..." : "Loading directory guides..."}
+          </span>
+        </div>
+      ) : (
+        <>
+          {/* Dynamic View rendering */}
+          {activeSubTab === "disease" && renderDiseaseGuide()}
+          {activeSubTab === "pest" && renderPestGuide()}
+          {activeSubTab === "post-harvest" && renderPostHarvestGuide()}
+        </>
+      )}
 
     </div>
   );

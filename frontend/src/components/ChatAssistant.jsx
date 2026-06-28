@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Mic, MicOff, Volume2, VolumeX, Bookmark, Plus, Loader, Info, HelpCircle, User, Bot, AlertTriangle, Sprout } from "lucide-react";
-import { askGemini } from "../gemini";
+import API from "../api";
 import { SUGGESTED_QUESTIONS } from "../data";
 
 export default function ChatAssistant({ t, messages, setMessages, apiKey, onSaveConversation, chatQuery, setChatQuery, onNewChat }) {
@@ -44,8 +44,9 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
 
     try {
       const isHindi = t.activeLanguage === "Hindi";
-      // Ask Gemini (live or fallback)
-      const data = await askGemini(queryText, apiKey, isHindi);
+      // Ask Gemini via backend API
+      const response = await API.post("/chat", { query: queryText, isHindi });
+      const data = response.data;
 
       setMessages([
         ...updatedMessages,
