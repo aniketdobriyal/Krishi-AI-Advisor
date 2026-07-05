@@ -186,7 +186,7 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex transition-colors duration-200">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex transition-colors duration-200 overflow-x-hidden max-w-full">
       
       {/* Sidebar Navigation */}
       <aside 
@@ -259,7 +259,7 @@ export default function App() {
       </aside>
 
       {/* Main Panel Content Container */}
-      <div className="flex-1 flex flex-col md:pl-64">
+      <div className="flex-1 flex flex-col md:pl-64 min-w-0">
         
         {/* Top Navbar */}
         <header className="h-16 border-b border-slate-200 dark:border-slate-900 bg-white dark:bg-slate-900 flex items-center justify-between px-6 sticky top-0 z-30">

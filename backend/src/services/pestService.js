@@ -1,9 +1,10 @@
-import { db } from "../config/db.js";
+import Pest from "../models/pest.js";
 
 class PestService {
-  getAll() {
-    return db.pests;
+  async getAll() {
+    return await Pest.find({});
   }
 }
 
 export default new PestService();
+

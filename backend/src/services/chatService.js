@@ -1,153 +1,175 @@
 import { getGeminiModel } from "../config/gemini.js";
-import { db } from "../config/db.js";
+import Disease from "../models/disease.js";
+import Pest from "../models/pest.js";
+import searchService from "./searchService.js";
 
 // Normalized matching helper
 const cleanStr = (str) => str.toLowerCase().replace(/[^a-z0-9\s\u0900-\u097F]/g, "");
 
 // Offline Advisor Fallback
-export function getOfflineAdvisory(query, isHindi = false) {
+export async function getOfflineAdvisory(query, isHindi = false) {
   const q = cleanStr(query);
   
   // 1. Search for specific diseases
   // Late Blight
   if (q.includes("blight") || q.includes("झुलसा") || q.includes("late") || q.includes("पछेती")) {
-    const d = db.diseases.find(x => x.id === "late-blight");
-    return {
-      problem: isHindi ? `${d.nameHi} (${d.pathogen})` : `${d.nameEn} (${d.pathogen})`,
-      causes: isHindi ? d.symptomsHi : d.symptomsEn,
-      actions: isHindi ? d.treatmentHi : d.treatmentEn,
-      precautions: isHindi ? d.preventionHi : d.preventionEn,
-      disclaimer: isHindi 
-        ? "यह मार्गदर्शन स्थानीय मौसम स्थितियों (आर्द्रता >85%) पर आधारित है। कृपया छिड़काव से पहले कृषि विज्ञान केंद्र (KVK) से इसकी पुष्टि करें।" 
-        : "This offline advisory is triggered by blight-related keywords. Please verify symptoms with your local Krishi Vigyan Kendra (KVK) agent."
-    };
+    const d = await Disease.findOne({ id: "late-blight" });
+    if (d) {
+      return {
+        problem: isHindi ? `${d.nameHi} (${d.pathogen})` : `${d.nameEn} (${d.pathogen})`,
+        causes: isHindi ? d.symptomsHi : d.symptomsEn,
+        actions: isHindi ? d.treatmentHi : d.treatmentEn,
+        precautions: isHindi ? d.preventionHi : d.preventionEn,
+        disclaimer: isHindi 
+          ? "यह मार्गदर्शन स्थानीय मौसम स्थितियों (आर्द्रता >85%) पर आधारित है। कृपया छिड़काव से पहले कृषि विज्ञान केंद्र (KVK) से इसकी पुष्टि करें।" 
+          : "This offline advisory is triggered by blight-related keywords. Please verify symptoms with your local Krishi Vigyan Kendra (KVK) agent."
+      };
+    }
   }
 
   // Rust
   if (q.includes("rust") || q.includes("गेरूई") || q.includes("रस्ट") || q.includes("wheat") || q.includes("गेहूं")) {
-    const d = db.diseases.find(x => x.id === "rust");
-    return {
-      problem: isHindi ? `${d.nameHi} (${d.pathogen})` : `${d.nameEn} (${d.pathogen})`,
-      causes: isHindi ? d.symptomsHi : d.symptomsEn,
-      actions: isHindi ? d.treatmentHi : d.treatmentEn,
-      precautions: isHindi ? d.preventionHi : d.preventionEn,
-      disclaimer: isHindi 
-        ? "जंग (रस्ट) रोग हवा से तेजी से फैलता है। कृपया ब्लॉक कृषि अधिकारी से प्रतिरोधी किस्मों की पुष्टि करें।" 
-        : "Rust spores travel quickly in wind. Verify crop resistance levels with block agriculture officers."
-    };
+    const d = await Disease.findOne({ id: "rust" });
+    if (d) {
+      return {
+        problem: isHindi ? `${d.nameHi} (${d.pathogen})` : `${d.nameEn} (${d.pathogen})`,
+        causes: isHindi ? d.symptomsHi : d.symptomsEn,
+        actions: isHindi ? d.treatmentHi : d.treatmentEn,
+        precautions: isHindi ? d.preventionHi : d.preventionEn,
+        disclaimer: isHindi 
+          ? "जंग (रस्ट) रोग हवा से तेजी से फैलता है। कृपया ब्लॉक कृषि अधिकारी से प्रतिरोधी किस्मों की पुष्टि करें।" 
+          : "Rust spores travel quickly in wind. Verify crop resistance levels with block agriculture officers."
+      };
+    }
   }
 
   // Powdery Mildew
   if (q.includes("mildew") || q.includes("आसिता") || q.includes("powdery") || q.includes("चूर्णिल")) {
-    const d = db.diseases.find(x => x.id === "powdery-mildew");
-    return {
-      problem: isHindi ? `${d.nameHi} (${d.pathogen})` : `${d.nameEn} (${d.pathogen})`,
-      causes: isHindi ? d.symptomsHi : d.symptomsEn,
-      actions: isHindi ? d.treatmentHi : d.treatmentEn,
-      precautions: isHindi ? d.preventionHi : d.preventionEn,
-      disclaimer: isHindi 
-        ? "यह चूर्णिल आसिता (पाउडरी मिल्ड्यू) रोग का एक सामान्य उपचार है। जैविक सल्फर छिड़काव दोपहर के समय न करें।" 
-        : "Standard powdery mildew advisory. Refrain from spraying sulphur during peak midday temperatures."
-    };
+    const d = await Disease.findOne({ id: "powdery-mildew" });
+    if (d) {
+      return {
+        problem: isHindi ? `${d.nameHi} (${d.pathogen})` : `${d.nameEn} (${d.pathogen})`,
+        causes: isHindi ? d.symptomsHi : d.symptomsEn,
+        actions: isHindi ? d.treatmentHi : d.treatmentEn,
+        precautions: isHindi ? d.preventionHi : d.preventionEn,
+        disclaimer: isHindi 
+          ? "यह चूर्णिल आसिता (पाउडरी मिल्ड्यू) रोग का एक सामान्य उपचार है। जैविक सल्फर छिड़काव दोपहर के समय न करें।" 
+          : "Standard powdery mildew advisory. Refrain from spraying sulphur during peak midday temperatures."
+      };
+    }
   }
 
   // Bacterial Wilt
   if (q.includes("wilt") || q.includes("म्लानि") || q.includes("bacterial") || q.includes("जीवाणु")) {
-    const d = db.diseases.find(x => x.id === "bacterial-wilt");
-    return {
-      problem: isHindi ? `${d.nameHi} (${d.pathogen})` : `${d.nameEn} (${d.pathogen})`,
-      causes: isHindi ? d.symptomsHi : d.symptomsEn,
-      actions: isHindi ? d.treatmentHi : d.treatmentEn,
-      precautions: isHindi ? d.preventionHi : d.preventionEn,
-      disclaimer: isHindi 
-        ? "बैक्टीरियल विल्ट का कोई रासायनिक इलाज नहीं है। केवल पौधों को उखाड़कर और स्वच्छता बनाकर ही इसे नियंत्रित किया जा सकता है।" 
-        : "Bacterial wilt has no effective chemical cure. Removal of affected plants is mandatory to protect the field."
-    };
+    const d = await Disease.findOne({ id: "bacterial-wilt" });
+    if (d) {
+      return {
+        problem: isHindi ? `${d.nameHi} (${d.pathogen})` : `${d.nameEn} (${d.pathogen})`,
+        causes: isHindi ? d.symptomsHi : d.symptomsEn,
+        actions: isHindi ? d.treatmentHi : d.treatmentEn,
+        precautions: isHindi ? d.preventionHi : d.preventionEn,
+        disclaimer: isHindi 
+          ? "बैक्टीरियल विल्ट का कोई रासायनिक इलाज नहीं है। केवल पौधों को उखाड़कर और स्वच्छता बनाकर ही इसे नियंत्रित किया जा सकता है।" 
+          : "Bacterial wilt has no effective chemical cure. Removal of affected plants is mandatory to protect the field."
+      };
+    }
   }
 
   // Leaf Spot
   if (q.includes("spot") || q.includes("धब्बा") || q.includes("leaf spot") || q.includes("पत्ती धब्बा")) {
-    const d = db.diseases.find(x => x.id === "leaf-spot");
-    return {
-      problem: isHindi ? `${d.nameHi} (${d.pathogen})` : `${d.nameEn} (${d.pathogen})`,
-      causes: isHindi ? d.symptomsHi : d.symptomsEn,
-      actions: isHindi ? d.treatmentHi : d.treatmentEn,
-      precautions: isHindi ? d.preventionHi : d.preventionEn,
-      disclaimer: isHindi 
-        ? "पत्ती धब्बा कवक जनित रोग है। प्रमाणित बीज और फफूंदनाशकों का उचित प्रयोग सुनिश्चित करें।" 
-        : "Standard leaf spot warning. Confirm crop age and humidity context before chemical application."
-    };
+    const d = await Disease.findOne({ id: "leaf-spot" });
+    if (d) {
+      return {
+        problem: isHindi ? `${d.nameHi} (${d.pathogen})` : `${d.nameEn} (${d.pathogen})`,
+        causes: isHindi ? d.symptomsHi : d.symptomsEn,
+        actions: isHindi ? d.treatmentHi : d.treatmentEn,
+        precautions: isHindi ? d.preventionHi : d.preventionEn,
+        disclaimer: isHindi 
+          ? "पत्ती धब्बा कवक जनित रोग है। प्रमाणित बीज और फफूंदनाशकों का उचित प्रयोग सुनिश्चित करें।" 
+          : "Standard leaf spot warning. Confirm crop age and humidity context before chemical application."
+      };
+    }
   }
 
   // 2. Search for pests
   // Aphids
   if (q.includes("aphid") || q.includes("माहू") || q.includes("एफिड") || q.includes("sarso") || q.includes("mustard") || q.includes("सरसों")) {
-    const p = db.pests.find(x => x.id === "aphids");
-    return {
-      problem: isHindi ? p.nameHi : p.nameEn,
-      causes: isHindi ? p.descriptionHi : p.descriptionEn,
-      actions: isHindi ? p.controlHi : p.controlEn,
-      precautions: isHindi ? p.preventionHi : p.preventionEn,
-      disclaimer: isHindi 
-        ? "एफिड्स (माहू) का प्रकोप मौसम बदलने पर बढ़ता है। रासायनिक छिड़काव तभी करें जब आर्थिक क्षति स्तर (ETL) पार हो।" 
-        : "Monitor beneficial insects (like ladybugs) before applying intensive chemical aphidicides."
-    };
+    const p = await Pest.findOne({ id: "aphids" });
+    if (p) {
+      return {
+        problem: isHindi ? p.nameHi : p.nameEn,
+        causes: isHindi ? p.descriptionHi : p.descriptionEn,
+        actions: isHindi ? p.controlHi : p.controlEn,
+        precautions: isHindi ? p.preventionHi : p.preventionEn,
+        disclaimer: isHindi 
+          ? "एफिड्स (माहू) का प्रकोप मौसम बदलने पर बढ़ता है। रासायनिक छिड़काव तभी करें जब आर्थिक क्षति स्तर (ETL) पार हो।" 
+          : "Monitor beneficial insects (like ladybugs) before applying intensive chemical aphidicides."
+      };
+    }
   }
 
   // Whiteflies
   if (q.includes("whitefl") || q.includes("सफेद मक्खी") || q.includes("makkhi")) {
-    const p = db.pests.find(x => x.id === "whiteflies");
-    return {
-      problem: isHindi ? p.nameHi : p.nameEn,
-      causes: isHindi ? p.descriptionHi : p.descriptionEn,
-      actions: isHindi ? p.controlHi : p.controlEn,
-      precautions: isHindi ? p.preventionHi : p.preventionEn,
-      disclaimer: isHindi 
-        ? "सफेद मक्खी टमाटर में वायरस फैलाती है। वायरस-ग्रस्त पौधों को तुरंत नष्ट करना सबसे महत्वपूर्ण है।" 
-        : "Whiteflies transmit leaf curl virus. Eradicate infected weed hosts and vector colonies simultaneously."
-    };
+    const p = await Pest.findOne({ id: "whiteflies" });
+    if (p) {
+      return {
+        problem: isHindi ? p.nameHi : p.nameEn,
+        causes: isHindi ? p.descriptionHi : p.descriptionEn,
+        actions: isHindi ? p.controlHi : p.controlEn,
+        precautions: isHindi ? p.preventionHi : p.preventionEn,
+        disclaimer: isHindi 
+          ? "सफेद मक्खी टमाटर में वायरस फैलाती है। वायरस-ग्रस्त पौधों को तुरंत नष्ट करना सबसे महत्वपूर्ण है।" 
+          : "Whiteflies transmit leaf curl virus. Eradicate infected weed hosts and vector colonies simultaneously."
+      };
+    }
   }
 
   // Fruit Borer
   if (q.includes("fruit borer") || q.includes("shoot borer") || q.includes("फल छेदक") || q.includes("तना छेदक") || q.includes("brinjal") || q.includes("बैंगन")) {
-    const p = db.pests.find(x => x.id === "fruit-borer");
-    return {
-      problem: isHindi ? p.nameHi : p.nameEn,
-      causes: isHindi ? p.descriptionHi : p.descriptionEn,
-      actions: isHindi ? p.controlHi : p.controlEn,
-      precautions: isHindi ? p.preventionHi : p.preventionEn,
-      disclaimer: isHindi 
-        ? "तना और फल छेदक बैंगन की प्रमुख समस्या है। केवल सुरक्षित जैविक कीटनाशकों (जैसे Bt) का पहला प्रयोग करें।" 
-        : "Avoid continuous sprays of the same insecticide class to prevent pest resistance."
-    };
+    const p = await Pest.findOne({ id: "fruit-borer" });
+    if (p) {
+      return {
+        problem: isHindi ? p.nameHi : p.nameEn,
+        causes: isHindi ? p.descriptionHi : p.descriptionEn,
+        actions: isHindi ? p.controlHi : p.controlEn,
+        precautions: isHindi ? p.preventionHi : p.preventionEn,
+        disclaimer: isHindi 
+          ? "तना और फल छेदक बैंगन की प्रमुख समस्या है। केवल सुरक्षित जैविक कीटनाशकों (जैसे Bt) का पहला प्रयोग करें।" 
+          : "Avoid continuous sprays of the same insecticide class to prevent pest resistance."
+      };
+    }
   }
 
   // Armyworm
   if (q.includes("armyworm") || q.includes("लश्करी") || q.includes("कीट") || q.includes("fall armyworm")) {
-    const p = db.pests.find(x => x.id === "armyworm");
-    return {
-      problem: isHindi ? p.nameHi : p.nameEn,
-      causes: isHindi ? p.descriptionHi : p.descriptionEn,
-      actions: isHindi ? p.controlHi : p.controlEn,
-      precautions: isHindi ? p.preventionHi : p.preventionEn,
-      disclaimer: isHindi 
-        ? "लश्करी कीट (फॉ़ल आर्मीवॉर्म) मक्के में अत्यधिक विनाशकारी है। सुबह के समय तने के भंवर में सीधे कीटनाशक डालें।" 
-        : "Ensure chemical hits the central whorl of maize where larvae feed during the night."
-    };
+    const p = await Pest.findOne({ id: "armyworm" });
+    if (p) {
+      return {
+        problem: isHindi ? p.nameHi : p.nameEn,
+        causes: isHindi ? p.descriptionHi : p.descriptionEn,
+        actions: isHindi ? p.controlHi : p.controlEn,
+        precautions: isHindi ? p.preventionHi : p.preventionEn,
+        disclaimer: isHindi 
+          ? "लश्करी कीट (फॉ़ल आर्मीवॉर्म) मक्के में अत्यधिक विनाशकारी है। सुबह के समय तने के भंवर में सीधे कीटनाशक डालें।" 
+          : "Ensure chemical hits the central whorl of maize where larvae feed during the night."
+      };
+    }
   }
 
   // Thrips / Stem Borer
   if (q.includes("thrip") || q.includes("थ्रिप्स") || q.includes("stem borer") || q.includes("rice") || q.includes("धान")) {
-    const p = db.pests.find(x => x.id === "stem-borer") || db.pests.find(x => x.id === "thrips");
-    return {
-      problem: isHindi ? p.nameHi : p.nameEn,
-      causes: isHindi ? p.descriptionHi : p.descriptionEn,
-      actions: isHindi ? p.controlHi : p.controlEn,
-      precautions: isHindi ? p.preventionHi : p.preventionEn,
-      disclaimer: isHindi 
-        ? "धान के तना छेदक के लिए जलभराव वाले क्षेत्रों में दानेदार कीटनाशक का सही समय पर छिड़काव आवश्यक है।" 
-        : "Stem borer control requires granular application in water or systemic sprays prior to heading stage."
-    };
+    const p = (await Pest.findOne({ id: "stem-borer" })) || (await Pest.findOne({ id: "thrips" }));
+    if (p) {
+      return {
+        problem: isHindi ? p.nameHi : p.nameEn,
+        causes: isHindi ? p.descriptionHi : p.descriptionEn,
+        actions: isHindi ? p.controlHi : p.controlEn,
+        precautions: isHindi ? p.preventionHi : p.preventionEn,
+        disclaimer: isHindi 
+          ? "धान के तना छेदक के लिए जलभराव वाले क्षेत्रों में दानेदार कीटनाशक का सही समय पर छिड़काव आवश्यक है।" 
+          : "Stem borer control requires granular application in water or systemic sprays prior to heading stage."
+      };
+    }
   }
 
   // 3. Post-Harvest storage guidelines query
@@ -215,13 +237,33 @@ class ChatService {
       console.log("No Gemini API key detected, triggering offline keyword diagnostics.");
       // Return offline mock after a short artificial delay to simulate network latency
       return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(getOfflineAdvisory(query, isHindi));
+        setTimeout(async () => {
+          resolve(await getOfflineAdvisory(query, isHindi));
         }, 1200);
       });
     }
 
     try {
+      // Find matching context from DB dynamically using regex searches
+      const searchResults = await searchService.search(query);
+      let contextString = "";
+      
+      if (searchResults.crops.length > 0) {
+        contextString += "\nCrops Context:\n" + searchResults.crops.map(c => 
+          `- Crop: ${c.nameEn} (${c.scientificName}). Description: ${c.descriptionEn}`
+        ).join("\n") + "\n";
+      }
+      if (searchResults.diseases.length > 0) {
+        contextString += "\nDiseases Context:\n" + searchResults.diseases.map(d => 
+          `- Disease: ${d.nameEn} (Pathogen: ${d.pathogen}). Symptoms: ${d.symptomsEn}. Prevention: ${d.preventionEn}. Treatment: ${d.treatmentEn}`
+        ).join("\n") + "\n";
+      }
+      if (searchResults.pests.length > 0) {
+        contextString += "\nPests Context:\n" + searchResults.pests.map(p => 
+          `- Pest: ${p.nameEn}. Description: ${p.descriptionEn}. Prevention: ${p.preventionEn}. Control: ${p.controlEn}`
+        ).join("\n") + "\n";
+      }
+
       const languageText = isHindi 
         ? "Hindi (हिंदी) language. Ensure all translations are natural, localized for Uttarakhand, and written in Devanagari script." 
         : "English language. Use clear professional terminology.";
@@ -229,6 +271,10 @@ class ChatService {
       const systemPrompt = `
 You are a senior agricultural scientist advising field supervisors in Uttarakhand, India.
 Your task is to analyze the supervisor's query and provide professional, practical, and highly detailed agricultural guidance.
+
+Use the following context from our official database if relevant to the query:
+${contextString || "No specific database context matches the query. Provide professional guidance based on general organic agronomy practices."}
+
 You MUST respond ONLY with a valid JSON object. Do not include markdown code fence wrappers (like \`\`\`json) or any pre/post text. Just return the raw JSON object.
 
 Uncertainty & Hallucination Prevention Rules:
@@ -289,7 +335,7 @@ Language: Respond in ${languageText}
       }
     } catch (error) {
       console.error("Gemini API error in backend, falling back to local keywords:", error);
-      return getOfflineAdvisory(query, isHindi);
+      return await getOfflineAdvisory(query, isHindi);
     }
   }
 }

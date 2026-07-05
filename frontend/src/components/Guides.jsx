@@ -39,10 +39,10 @@ export default function Guides({ t, activeSubTab }) {
           API.get("/pests"),
           API.get("/post-harvest")
         ]);
-        setCrops(cropsRes.data);
-        setDiseases(diseasesRes.data);
-        setPests(pestsRes.data);
-        setPostHarvestGuides(postHarvestRes.data);
+        setCrops(cropsRes.data || []);
+        setDiseases(diseasesRes.data || []);
+        setPests(pestsRes.data || []);
+        setPostHarvestGuides(postHarvestRes.data || []);
       } catch (err) {
         console.error("Failed to load guides:", err);
         setError(isHindi ? "मार्गदर्शिका डेटा लोड करने में विफल।" : "Failed to load guides data from server.");
@@ -53,23 +53,41 @@ export default function Guides({ t, activeSubTab }) {
     fetchGuidesData();
   }, [isHindi]);
 
-  // Filter Diseases
+  // Reset filter criteria when switching between sub-tabs
+  useEffect(() => {
+    setSearchQuery("");
+    setSelectedCropFilter("all");
+    setSelectedDisease(null);
+  }, [activeSubTab]);
+
+  // Filter Diseases with robust string and array safety guards
   const filteredDiseases = diseases.filter(d => {
+    const nameHi = d.nameHi || "";
+    const nameEn = d.nameEn || "";
+    const pathogen = d.pathogen || "";
+    const cropIds = d.cropIds || [];
+
     const matchesSearch = isHindi
-      ? d.nameHi.toLowerCase().includes(searchQuery.toLowerCase()) || d.pathogen.toLowerCase().includes(searchQuery.toLowerCase())
-      : d.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) || d.pathogen.toLowerCase().includes(searchQuery.toLowerCase());
+      ? nameHi.toLowerCase().includes(searchQuery.toLowerCase()) || pathogen.toLowerCase().includes(searchQuery.toLowerCase())
+      : nameEn.toLowerCase().includes(searchQuery.toLowerCase()) || pathogen.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const cropMatches = selectedCropFilter === "all" || d.cropIds.includes(selectedCropFilter);
+    const cropMatches = selectedCropFilter === "all" || cropIds.includes(selectedCropFilter);
     return matchesSearch && cropMatches;
   });
 
-  // Filter Pests
+  // Filter Pests with robust string and array safety guards
   const filteredPests = pests.filter(p => {
-    const matchesSearch = isHindi
-      ? p.nameHi.toLowerCase().includes(searchQuery.toLowerCase()) || p.descriptionHi.toLowerCase().includes(searchQuery.toLowerCase())
-      : p.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) || p.descriptionEn.toLowerCase().includes(searchQuery.toLowerCase());
+    const nameHi = p.nameHi || "";
+    const nameEn = p.nameEn || "";
+    const descHi = p.descriptionHi || "";
+    const descEn = p.descriptionEn || "";
+    const cropIds = p.cropIds || [];
 
-    const cropMatches = selectedCropFilter === "all" || p.cropIds.includes(selectedCropFilter);
+    const matchesSearch = isHindi
+      ? nameHi.toLowerCase().includes(searchQuery.toLowerCase()) || descHi.toLowerCase().includes(searchQuery.toLowerCase())
+      : nameEn.toLowerCase().includes(searchQuery.toLowerCase()) || descEn.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const cropMatches = selectedCropFilter === "all" || cropIds.includes(selectedCropFilter);
     return matchesSearch && cropMatches;
   });
 
@@ -77,7 +95,7 @@ export default function Guides({ t, activeSubTab }) {
   const renderDiseaseGuide = () => (
     <div className="space-y-6">
       {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
         {/* Search */}
         <div className="relative w-full md:w-80">
           <Search className="absolute left-3.5 top-3 h-4.5 w-4.5 text-slate-400" />
@@ -91,7 +109,7 @@ export default function Guides({ t, activeSubTab }) {
         </div>
 
         {/* Crop Pills */}
-        <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-1 custom-scrollbar">
+        <div className="flex gap-2 overflow-x-auto flex-1 min-w-0 pb-1.5 custom-scrollbar">
           <button
             onClick={() => setSelectedCropFilter("all")}
             className={`rounded-full px-4 py-1.5 text-xs font-semibold whitespace-nowrap cursor-pointer transition ${
@@ -127,11 +145,12 @@ export default function Guides({ t, activeSubTab }) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDiseases.map(d => {
-            const cropNames = d.cropIds
+            const cropNames = (d.cropIds || [])
               .map(cid => {
                 const cr = crops.find(x => x.id === cid);
-                return cr ? (isHindi ? cr.nameHi : cr.nameEn) : "";
+                return cr ? (isHindi ? cr.nameHi || cr.nameEn : cr.nameEn || cr.nameHi) : "";
               })
+              .filter(Boolean)
               .join(", ");
 
             return (
@@ -220,10 +239,13 @@ export default function Guides({ t, activeSubTab }) {
                   {t.affectedCropsLabel}
                 </span>
                 <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
-                  {selectedDisease.cropIds.map(cid => {
-                    const cr = crops.find(x => x.id === cid);
-                    return cr ? (isHindi ? cr.nameHi : cr.nameEn) : "";
-                  }).join(", ")}
+                  {(selectedDisease.cropIds || [])
+                    .map(cid => {
+                      const cr = crops.find(x => x.id === cid);
+                      return cr ? (isHindi ? cr.nameHi || cr.nameEn : cr.nameEn || cr.nameHi) : "";
+                    })
+                    .filter(Boolean)
+                    .join(", ") || (isHindi ? "सभी फसलें" : "All Crops")}
                 </p>
               </div>
 
@@ -232,7 +254,7 @@ export default function Guides({ t, activeSubTab }) {
                   {t.symptomsLabel}
                 </span>
                 <p className="text-xs text-slate-600 dark:text-slate-350 mt-1 leading-relaxed">
-                  {isHindi ? selectedDisease.symptomsHi : selectedDisease.symptomsEn}
+                  {isHindi ? selectedDisease.symptomsHi || "जानकारी अनुपलब्ध है।" : selectedDisease.symptomsEn || "Symptoms information not available."}
                 </p>
               </div>
 
@@ -241,7 +263,7 @@ export default function Guides({ t, activeSubTab }) {
                   {t.preventionLabel}
                 </span>
                 <p className="text-xs text-slate-600 dark:text-slate-350 mt-1 leading-relaxed">
-                  {isHindi ? selectedDisease.preventionHi : selectedDisease.preventionEn}
+                  {isHindi ? selectedDisease.preventionHi || "जानकारी अनुपलब्ध है।" : selectedDisease.preventionEn || "Prevention measures not available."}
                 </p>
               </div>
 
@@ -276,7 +298,7 @@ export default function Guides({ t, activeSubTab }) {
   const renderPestGuide = () => (
     <div className="space-y-6">
       {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
         {/* Search */}
         <div className="relative w-full md:w-80">
           <Search className="absolute left-3.5 top-3 h-4.5 w-4.5 text-slate-400" />
@@ -290,7 +312,7 @@ export default function Guides({ t, activeSubTab }) {
         </div>
 
         {/* Crop Pills */}
-        <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-1 custom-scrollbar">
+        <div className="flex gap-2 overflow-x-auto flex-1 min-w-0 pb-1.5 custom-scrollbar">
           <button
             onClick={() => setSelectedCropFilter("all")}
             className={`rounded-full px-4 py-1.5 text-xs font-semibold whitespace-nowrap cursor-pointer transition ${
@@ -326,11 +348,12 @@ export default function Guides({ t, activeSubTab }) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredPests.map(p => {
-            const cropNames = p.cropIds
+            const cropNames = (p.cropIds || [])
               .map(cid => {
                 const cr = crops.find(x => x.id === cid);
-                return cr ? (isHindi ? cr.nameHi : cr.nameEn) : "";
+                return cr ? (isHindi ? cr.nameHi || cr.nameEn : cr.nameEn || cr.nameHi) : "";
               })
+              .filter(Boolean)
               .join(", ");
 
             return (

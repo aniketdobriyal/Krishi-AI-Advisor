@@ -1,13 +1,14 @@
-import { db } from "../config/db.js";
+import Disease from "../models/disease.js";
 
 class DiseaseService {
-  getAll() {
-    return db.diseases;
+  async getAll() {
+    return await Disease.find({});
   }
 
-  getById(id) {
-    return db.diseases.find(disease => disease.id === id);
+  async getById(id) {
+    return await Disease.findOne({ id });
   }
 }
 
 export default new DiseaseService();
+

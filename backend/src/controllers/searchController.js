@@ -10,9 +10,10 @@ export const search = async (req, res, next) => {
       return next(error);
     }
 
-    const results = searchService.search(q);
+    const results = await searchService.search(q);
     return res.status(200).json(results);
   } catch (error) {
     return next(error);
   }
 };
+

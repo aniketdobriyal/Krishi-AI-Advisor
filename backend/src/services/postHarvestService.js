@@ -1,9 +1,10 @@
-import { db } from "../config/db.js";
+import PostHarvest from "../models/postHarvest.js";
 
 class PostHarvestService {
-  getAll() {
-    return db.postHarvest;
+  async getAll() {
+    return await PostHarvest.find({});
   }
 }
 
 export default new PostHarvestService();
+

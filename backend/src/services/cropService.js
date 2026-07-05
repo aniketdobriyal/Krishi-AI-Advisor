@@ -1,9 +1,10 @@
-import { db } from "../config/db.js";
+import Crop from "../models/crop.js";
 
 class CropService {
-  getAll() {
-    return db.crops;
+  async getAll() {
+    return await Crop.find({});
   }
 }
 
 export default new CropService();
+

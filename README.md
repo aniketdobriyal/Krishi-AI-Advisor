@@ -55,6 +55,7 @@ To prevent hallucinations and minimize risk to local crops, the advisor runs und
 
 *   Node.js (v18.x or higher recommended)
 *   npm (or yarn)
+*   MongoDB Instance (Local running at `mongodb://127.0.0.1:27017` or MongoDB Atlas Cluster)
 
 ### Installation & Setup
 
@@ -74,16 +75,17 @@ To prevent hallucinations and minimize risk to local crops, the advisor runs und
     ```bash
     cp .env.example .env
     ```
-    Open the `.env` file and input your Gemini API key:
+    Open the `.env` file and input your Gemini API key and MongoDB URI connection string:
     ```env
     GEMINI_API_KEY=AI_zaSyYourKeyHere
+    MONGO_URI=mongodb://127.0.0.1:27017/krishi-ai-advisor
     PORT=5000
     ```
     Start the backend server:
     ```bash
     npm run dev
     ```
-    The server will start listening on [http://localhost:5000](http://localhost:5000).
+    The server will connect to MongoDB, automatically seed default collections (Crops, Diseases, Pests, PostHarvest Guides, default History) if empty, and start listening on [http://localhost:5000](http://localhost:5000).
 
 3.  **Frontend Setup**:
     Open a new terminal window, and navigate to the frontend directory:
@@ -99,23 +101,54 @@ To prevent hallucinations and minimize risk to local crops, the advisor runs und
 
 ---
 
+## 🗄️ Database Integration & Choice (Week 5)
+
+### Database Choice: MongoDB Atlas
+MongoDB Atlas was selected for the **Krishi AI Advisor** for several reasons:
+- **Flexible Document Model**: Allows seamless storage of complex and nested structures such as advisory message histories and embedded dialog details without rigid SQL joins.
+- **Mongoose ODM Integration**: Provides strong schema validation, hooks, and clean MVC separation for data structures in Node.js.
+- **Reliable Persistence**: Replaces in-memory storage arrays so supervisor data survives server reloads and browser refreshes.
+- **Free Tier Availability**: Provides scalable, zero-cost cloud databases perfect for field testing and remote block supervisor deployments.
+
+### Database Setup Instructions
+1. **Sign up**: Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) and register.
+2. **Create Cluster**: Create a free-tier shared cluster (M0) in your preferred region.
+3. **Database User**: Navigate to *Database Access* and create a user with read/write privileges.
+4. **Network Access**: Add IP `0.0.0.0/0` (allow access from anywhere) or whitelist your server's current IP.
+5. **Get URI**: Click *Connect*, choose *Drivers (Node.js)*, copy the connection string.
+6. **Configure ENV**: Paste it in `/backend/.env` under the variable `MONGO_URI` (replacing password and dbname placeholders).
+
+---
+
 ## 🔌 REST API Endpoints
 
-The Express backend exposes the following REST APIs under the `/api` prefix:
+The Express backend exposes the following REST APIs under the `/api` prefix (all persistence is now database-backed via Mongoose):
 
 | Method | Endpoint | Description | Status Codes |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/api/crops` | Retrieves list of all supported crops | `200` |
-| **GET** | `/api/diseases` | Retrieves all plant diseases | `200` |
+| **GET** | `/api/crops` | Retrieves crops from MongoDB | `200` |
+| **GET** | `/api/diseases` | Retrieves all plant diseases from MongoDB | `200` |
 | **GET** | `/api/diseases/:id` | Retrieves details of a specific disease by ID | `200`, `404` |
-| **GET** | `/api/pests` | Retrieves all crop insect pests profiles | `200` |
-| **GET** | `/api/post-harvest` | Retrieves post-harvest storage/transit checklists | `200` |
-| **POST** | `/api/chat` | AI Advisor prompt query (uses Gemini or offline matcher) | `200`, `400` |
-| **GET** | `/api/history` | Retrieves in-memory saved chat sessions | `200` |
-| **POST** | `/api/history` | Saves or updates a chat session | `200` (update), `201` (create), `400` |
-| **DELETE** | `/api/history/:id` | Deletes a saved chat session from the server | `204`, `404` |
-| **GET** | `/api/search?q=` | Text search across crops, diseases, and pests | `200`, `400` |
+| **GET** | `/api/pests` | Retrieves all pests from MongoDB | `200` |
+| **GET** | `/api/post-harvest` | Retrieves post-harvest guides from MongoDB | `200` |
+| **POST** | `/api/chat` | AI Advisor prompt (queries Gemini with DB context, fallback offline) | `200`, `400` |
+| **GET** | `/api/history` | Retrieves saved chat sessions from MongoDB | `200` |
+| **POST** | `/api/history` | Saves or updates a chat session in MongoDB | `200`, `201`, `400` |
+| **DELETE** | `/api/history/:id` | Deletes a saved chat session from MongoDB | `204`, `404` |
+| **GET** | `/api/search?q=` | Case-insensitive regex search across DB collections | `200`, `400` |
 | **GET** | `/api/config` | Returns whether the Gemini API key is configured | `200` |
+
+---
+
+## 🗺️ Schema Diagram
+
+Here is the professional entity relationship/schema diagram showing all collections, fields, and relationships designed and stored in MongoDB Atlas:
+
+![Krishi AI Advisor Database Schema Diagram](./W5_SchemaDiagram_TBI-26100505.png)
+
+The schema diagram is also exported to the root directory as:
+- Portable Document Format: [W5_SchemaDiagram_TBI-26100505.pdf](./W5_SchemaDiagram_TBI-26100505.pdf)
+- High-Resolution Image: [W5_SchemaDiagram_TBI-26100505.png](./W5_SchemaDiagram_TBI-26100505.png)
 
 ---
 
@@ -124,17 +157,23 @@ The Express backend exposes the following REST APIs under the `/api` prefix:
 ```
 Krishi-AI-Advisor/
 ├── W4_APICollection_TBI-26100505.json            # Postman REST collection
-├── W4_FrontendBackendConnection_TBI-26100505.pdf  # PDF Verification Report
+├── W4_FrontendBackendConnection_TBI-26100505.pdf  # Week 4 PDF Verification Report
+├── W5_SchemaDiagram_TBI-26100505.pdf             # Week 5 Database Schema (PDF)
+├── W5_SchemaDiagram_TBI-26100505.png             # Week 5 Database Schema (PNG)
+├── W5_CRUDVerification_TBI-26100505.pdf          # Week 5 CRUD Verification Report (PDF)
 ├── backend/             # Express.js MVC backend
 │   ├── .env.example     # Environment template
 │   ├── .gitignore       # Exclusion rules (node_modules, .env)
 │   ├── package.json     # Scripts and server dependencies
 │   └── src/
 │       ├── app.js       # Middleware & App configuration
-│       ├── server.js    # Entrypoint to spawn HTTP server
+│       ├── server.js    # Entrypoint, DB connection and startup
 │       ├── config/
-│       │   ├── db.js    # In-memory crop advisory database state
+│       │   ├── db.js    # Seed database contents
+│       │   ├── mongoose.js # MongoDB connection module
+│       │   ├── seed.js  # Seeder function to auto-populate collections
 │       │   └── gemini.js# Generative AI client initialization
+│       ├── models/      # Mongoose Schemas and Models (Crop, Disease, Pest, PostHarvest, History)
 │       ├── controllers/ # HTTP controller handlers
 │       ├── services/    # Business services and AI/DB operations
 │       ├── routes/      # REST endpoint mappings
