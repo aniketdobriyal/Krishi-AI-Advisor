@@ -2,10 +2,14 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 
-const backendEnv = path.join(process.cwd(), "backend", ".env");
-if (fs.existsSync(backendEnv)) {
-  dotenv.config({ path: backendEnv });
+// Load .env relative to this file
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const envPath = path.resolve(__dirname, "../../.env");
+
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
 } else {
   dotenv.config();
 }
@@ -17,7 +21,7 @@ export const getGeminiModel = () => {
     return null;
   }
   const genAI = new GoogleGenerativeAI(apiKey);
-  return genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  return genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
 };
 
 export const hasApiKey = () => {

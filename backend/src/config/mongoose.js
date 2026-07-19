@@ -3,9 +3,13 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 
-const backendEnv = path.join(process.cwd(), "backend", ".env");
-if (fs.existsSync(backendEnv)) {
-  dotenv.config({ path: backendEnv });
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const envPath = path.resolve(__dirname, "../../.env");
+
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
 } else {
   dotenv.config();
 }

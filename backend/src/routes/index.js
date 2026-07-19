@@ -6,15 +6,18 @@ import postHarvestRoutes from "./postHarvestRoutes.js";
 import chatRoutes from "./chatRoutes.js";
 import historyRoutes from "./historyRoutes.js";
 import searchRoutes from "./searchRoutes.js";
+import authRoutes from "./authRoutes.js";
+import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = Router();
 
+router.use("/auth", authRoutes);
 router.use("/crops", cropRoutes);
 router.use("/diseases", diseaseRoutes);
 router.use("/pests", pestRoutes);
 router.use("/post-harvest", postHarvestRoutes);
-router.use("/chat", chatRoutes);
-router.use("/history", historyRoutes);
+router.use("/chat", verifyToken, chatRoutes);
+router.use("/history", verifyToken, historyRoutes);
 router.use("/search", searchRoutes);
 
 router.get("/config", (req, res) => {

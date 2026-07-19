@@ -4,6 +4,7 @@ import {
   History, Settings, Languages, Sun, Moon, Bell, Search, 
   Menu, X, ChevronDown, Check, LogOut, ShieldCheck, RefreshCw, AlertCircle
 } from "lucide-react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 
 import { TRANSLATIONS } from "./data";
 import DashboardOverview from "./components/DashboardOverview";
@@ -12,8 +13,32 @@ import Guides from "./components/Guides";
 import ChatHistoryView from "./components/ChatHistoryView";
 import SettingsView from "./components/SettingsView";
 import API from "./api";
+import { useAuth } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route
+        path="/*"
+        element={
+          <ProtectedRoute>
+            <MainAppContent />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  );
+}
+
+function MainAppContent() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
   // Global States
   const [view, setView] = useState("dashboard"); // dashboard, chat, disease, pest, post-harvest, history, settings
   const [language, setLanguage] = useState(() => localStorage.getItem("crop_advisor_lang") || "en");
@@ -243,15 +268,19 @@ export default function App() {
         {/* Sidebar Footer */}
         <div className="p-4 border-t border-slate-100 dark:border-slate-900">
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-950 p-4 border border-slate-100 dark:border-slate-900/60 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold text-xs uppercase">
-              MO
+            <div className="h-9 w-9 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold text-xs uppercase overflow-hidden flex-shrink-0">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+              ) : (
+                user?.name ? user.name.split(" ").map(n => n[0]).join("").slice(0, 2) : "MO"
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <span className="block text-xs font-bold text-slate-800 dark:text-slate-300 truncate">
-                S. Upadhyay
+                {user?.name || "S. Upadhyay"}
               </span>
               <span className="block text-[9px] text-slate-400 dark:text-slate-500 truncate">
-                Mandakini Collective Sup
+                {user?.provider === "google" ? "Google Account" : "Local Account"}
               </span>
             </div>
           </div>
@@ -365,8 +394,12 @@ export default function App() {
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                 className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 p-1.5 pr-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
-                <div className="h-7 w-7 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-xs uppercase">
-                  S
+                <div className="h-7 w-7 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-xs uppercase overflow-hidden flex-shrink-0">
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+                  ) : (
+                    user?.name ? user.name[0] : "S"
+                  )}
                 </div>
                 <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
               </button>
@@ -374,11 +407,11 @@ export default function App() {
               {showProfileDropdown && (
                 <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-1.5 shadow-xl z-50 animate-fadeIn">
                   <div className="px-4 py-2 border-b border-slate-50 dark:border-slate-800">
-                    <span className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                      Suresh Upadhyay
+                    <span className="block text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                      {user?.name || "Suresh Upadhyay"}
                     </span>
                     <span className="block text-[9px] text-slate-400 truncate">
-                      suresh.upadhyay@mandakiniorganic.org
+                      {user?.email || "suresh.upadhyay@mandakiniorganic.org"}
                     </span>
                   </div>
                   
@@ -395,15 +428,14 @@ export default function App() {
 
                   <button
                     onClick={() => {
-                      setApiKey("");
-                      localStorage.removeItem("crop_advisor_api_key");
+                      logout();
                       setShowProfileDropdown(false);
-                      alert(t.activeLanguage === "English" ? "Logged out / Cleared credentials" : "लॉग आउट / क्रेडेंशियल हटाए गए");
+                      navigate("/login");
                     }}
                     className="w-full text-left px-4 py-2 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 flex items-center gap-2 cursor-pointer"
                   >
                     <LogOut className="h-3.5 w-3.5" />
-                    {t.activeLanguage === "English" ? "Clear Credentials" : "क्रेडेंशियल साफ़ करें"}
+                    {t.activeLanguage === "English" ? "Sign Out" : "साइन आउट"}
                   </button>
                 </div>
               )}

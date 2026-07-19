@@ -33,10 +33,16 @@ The application provides supervisors with instant, actionable guidance on crop d
 
 ---
 
-## 🛡️ Data Privacy & Security Model
+## 🛡️ Data Privacy & Security Model (Week 6 Upgrade)
 
-> [!NOTE]
-> **Secure Credential Model**: As of Week 4, the developer Gemini API key is stored securely in the server-side environment variables (`/backend/.env`). The React frontend no longer exposes or stores developer keys in `localStorage`, satisfying security guidelines. All queries route through our secure Express gateway.
+The application incorporates a robust User Authentication and Security hardening model:
+*   🔑 **JWT Authentication**: User login and registration backed by stateless JSON Web Tokens. Access tokens expire in 7 days and are attached automatically to outbound requests via Axios Request Interceptor.
+*   🔄 **Automatic Token Expiration Handling**: Axios Response Interceptor detects `401 Unauthorized` errors, automatically invalidates sessions by purging credentials from browser storage, and redirects the user to `/login` with a clear expiration alert.
+*   🔒 **Password Hardening**: User passwords are encrypted on the backend using `bcrypt` with 10 salt rounds. Under no circumstances are password hashes exposed or returned in API responses.
+*   🚦 **Request Rate Limiting**: Protects authentication endpoints (`/api/auth/register` and `/api/auth/login`) against brute force attacks using `express-rate-limit` (max 5 requests per 15 minutes).
+*   🛡️ **Helmet Hardening & Secure Headers**: Uses `helmet` middleware to set HTTP headers protecting against common vulnerabilities, and hides the `x-powered-by` header.
+*   🌐 **Google OAuth Integration**: Allows supervisors to authenticate seamlessly using Google Sign-In via Passport.js, storing account information with `provider: "google"`.
+*   🚀 **User-Scoped Multitenancy**: Restricts Chat History and Disease History queries to the logged-in user context. Default seeded history entries remain viewable to all.
 
 ---
 
@@ -124,19 +130,24 @@ MongoDB Atlas was selected for the **Krishi AI Advisor** for several reasons:
 
 The Express backend exposes the following REST APIs under the `/api` prefix (all persistence is now database-backed via Mongoose):
 
-| Method | Endpoint | Description | Status Codes |
-| :--- | :--- | :--- | :--- |
-| **GET** | `/api/crops` | Retrieves crops from MongoDB | `200` |
-| **GET** | `/api/diseases` | Retrieves all plant diseases from MongoDB | `200` |
-| **GET** | `/api/diseases/:id` | Retrieves details of a specific disease by ID | `200`, `404` |
-| **GET** | `/api/pests` | Retrieves all pests from MongoDB | `200` |
-| **GET** | `/api/post-harvest` | Retrieves post-harvest guides from MongoDB | `200` |
-| **POST** | `/api/chat` | AI Advisor prompt (queries Gemini with DB context, fallback offline) | `200`, `400` |
-| **GET** | `/api/history` | Retrieves saved chat sessions from MongoDB | `200` |
-| **POST** | `/api/history` | Saves or updates a chat session in MongoDB | `200`, `201`, `400` |
-| **DELETE** | `/api/history/:id` | Deletes a saved chat session from MongoDB | `204`, `404` |
-| **GET** | `/api/search?q=` | Case-insensitive regex search across DB collections | `200`, `400` |
-| **GET** | `/api/config` | Returns whether the Gemini API key is configured | `200` |
+| Method | Endpoint | Description | Protected | Status Codes |
+| :--- | :--- | :--- | :--- | :--- |
+| **POST** | `/api/auth/register` | Registers a local user with validation & bcrypt | No | `201`, `400` |
+| **POST** | `/api/auth/login` | Authenticates local user, returns JWT and user profile | No | `200`, `401` |
+| **GET** | `/api/auth/google` | Initiates Google OAuth consent screen redirect | No | `302` |
+| **GET** | `/api/auth/google/callback` | Passport Google OAuth callback redirect | No | `302` |
+| **GET** | `/api/auth/profile` | Fetches active user profile details from JWT | Yes | `200`, `401` |
+| **GET** | `/api/crops` | Retrieves crops from MongoDB | No | `200` |
+| **GET** | `/api/diseases` | Retrieves all plant diseases from MongoDB | No | `200` |
+| **GET** | `/api/diseases/:id` | Retrieves details of a specific disease by ID | No | `200`, `404` |
+| **GET** | `/api/pests` | Retrieves all pests from MongoDB | No | `200` |
+| **GET** | `/api/post-harvest` | Retrieves post-harvest guides from MongoDB | No | `200` |
+| **POST** | `/api/chat` | AI Advisor prompt (queries Gemini with DB context) | Yes | `200`, `400`, `401` |
+| **GET** | `/api/history` | Retrieves saved user chat sessions from MongoDB | Yes | `200`, `401` |
+| **POST** | `/api/history` | Saves or updates user chat session in MongoDB | Yes | `200`, `201`, `400`, `401` |
+| **DELETE** | `/api/history/:id` | Deletes user chat session from MongoDB | Yes | `204`, `404`, `401` |
+| **GET** | `/api/search?q=` | Case-insensitive regex search across DB collections | No | `200`, `400` |
+| **GET** | `/api/config` | Returns whether the Gemini API key is configured | No | `200` |
 
 ---
 
@@ -166,26 +177,30 @@ Krishi-AI-Advisor/
 │   ├── .gitignore       # Exclusion rules (node_modules, .env)
 │   ├── package.json     # Scripts and server dependencies
 │   └── src/
-│       ├── app.js       # Middleware & App configuration
+│       ├── app.js       # Middleware, helmet, CORS, passport, and routes config
 │       ├── server.js    # Entrypoint, DB connection and startup
 │       ├── config/
 │       │   ├── db.js    # Seed database contents
 │       │   ├── mongoose.js # MongoDB connection module
 │       │   ├── seed.js  # Seeder function to auto-populate collections
-│       │   └── gemini.js# Generative AI client initialization
-│       ├── models/      # Mongoose Schemas and Models (Crop, Disease, Pest, PostHarvest, History)
-│       ├── controllers/ # HTTP controller handlers
-│       ├── services/    # Business services and AI/DB operations
-│       ├── routes/      # REST endpoint mappings
-│       └── middleware/  # Error handlers and guardrails
+│       │   ├── gemini.js# Generative AI client initialization
+│       │   └── passport.js # Google OAuth passport configuration
+│       ├── models/      # Mongoose Schemas (User, Crop, Disease, Pest, PostHarvest, History)
+│       ├── controllers/ # Controllers (authController, chatController, historyController, etc.)
+│       ├── services/    # Business services (authService, chatService, searchService, etc.)
+│       ├── routes/      # REST routing (authRoutes, chatRoutes, historyRoutes, etc.)
+│       └── middleware/  # Middlewares (verifyToken, errorHandler)
 └── frontend/            # React Vite client code
     ├── .gitignore       # Client exclusion rules
     ├── package.json     # Client scripts and dependencies
     ├── vite.config.js   # Vite config
     └── src/
-        ├── App.jsx      # UI shell, API connections and states
-        ├── api.js       # Axios base instance configuration
-        ├── main.jsx      # React entrypoint
+        ├── App.jsx      # UI router, main protected dashboard shell layout
+        ├── api.js       # Axios base instance, JWT attach request, & 401 response interceptors
+        ├── main.jsx      # React mounting entrypoint, wraps App in AuthProvider and BrowserRouter
         ├── data.js       # UI static texts and translations
-        └── components/   # Modular dashboard views
+        ├── components/   # Modular dashboard views, ProtectedRoute
+        ├── context/      # React contexts (AuthContext)
+        ├── pages/        # Views (Login, Register)
+        └── services/     # Axios API requests (authService)
 ```

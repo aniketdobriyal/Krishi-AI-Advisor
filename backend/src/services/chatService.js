@@ -295,12 +295,21 @@ User Query: "${query}"
 Language: Respond in ${languageText}
 `;
 
-      const result = await model.generateContent({
-        contents: systemPrompt,
-        generationConfig: {
-          temperature: parseFloat(temp) || 0.2
+   const result = await model.generateContent({
+  contents: [
+    {
+      role: "user",
+      parts: [
+        {
+          text: systemPrompt
         }
-      });
+      ]
+    }
+  ],
+  generationConfig: {
+    temperature: parseFloat(temp) || 0.2
+  }
+});
       const response = await result.response;
       const responseText = response.text().trim();
 

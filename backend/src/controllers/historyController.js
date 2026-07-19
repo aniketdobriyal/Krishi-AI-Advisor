@@ -2,7 +2,8 @@ import historyService from "../services/historyService.js";
 
 export const getHistory = async (req, res, next) => {
   try {
-    const list = await historyService.getAll();
+    const userId = req.user?._id;
+    const list = await historyService.getAll(userId);
     return res.status(200).json(list);
   } catch (error) {
     return next(error);
@@ -12,6 +13,7 @@ export const getHistory = async (req, res, next) => {
 export const saveHistory = async (req, res, next) => {
   try {
     const sessionData = req.body;
+    const userId = req.user?._id;
     
     if (!sessionData.messages || !Array.isArray(sessionData.messages)) {
       const error = new Error("Messages array is required");
@@ -19,9 +21,9 @@ export const saveHistory = async (req, res, next) => {
       return next(error);
     }
 
-    const allHistory = await historyService.getAll();
+    const allHistory = await historyService.getAll(userId);
     const isExisting = sessionData.id && allHistory.some(h => h.id === sessionData.id);
-    const saved = await historyService.save(sessionData);
+    const saved = await historyService.save(sessionData, userId);
 
     return res.status(isExisting ? 200 : 201).json(saved);
   } catch (error) {
@@ -32,7 +34,8 @@ export const saveHistory = async (req, res, next) => {
 export const deleteHistory = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const deleted = await historyService.delete(id);
+    const userId = req.user?._id;
+    const deleted = await historyService.delete(id, userId);
 
     if (!deleted) {
       const error = new Error(`History session with ID '${id}' not found`);

@@ -29,6 +29,11 @@ const messageSchema = new mongoose.Schema({
 
 const historySchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      index: true
+    },
     id: {
       type: String,
       required: [true, "History Session ID is required"],
