@@ -16,6 +16,29 @@ if (fs.existsSync(envPath)) {
   dotenv.config();
 }
 
+// Environment variable validation for production readiness
+const requiredEnvVars = ["JWT_SECRET", "CLIENT_URL", "MONGO_URI"];
+const missing = requiredEnvVars.filter(v => !process.env[v]);
+
+if (process.env.NODE_ENV === "production") {
+  if (missing.length > 0) {
+    console.error(`CRITICAL ERROR: Missing required production environment variables: ${missing.join(", ")}`);
+    process.exit(1);
+  }
+} else {
+  if (missing.length > 0) {
+    console.warn(`WARNING: Missing environment variables for local development: ${missing.join(", ")}`);
+  }
+}
+
+if (!process.env.GEMINI_API_KEY) {
+  console.warn("WARNING: GEMINI_API_KEY is not defined. AI Chat will fall back to offline keyword-matching mode.");
+}
+
+if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+  console.warn("WARNING: GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is missing. Google OAuth strategy will not work.");
+}
+
 const PORT = process.env.PORT || 5000;
 
 // Initialize database and start server

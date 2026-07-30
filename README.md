@@ -204,3 +204,78 @@ Krishi-AI-Advisor/
         ├── pages/        # Views (Login, Register)
         └── services/     # Axios API requests (authService)
 ```
+
+---
+
+## 🌐 Production Deployment
+
+The project is structured to be deployed with the **Frontend on Vercel** and the **Backend on Render**.
+
+### 🔗 Deployed URLs (Placeholders)
+*   **Frontend (Vercel)**: `https://YOUR-VERCEL-APP.vercel.app`
+*   **Backend (Render)**: `https://YOUR-RENDER-APP.onrender.com`
+
+---
+
+### 🔑 Environment Variables Setup
+
+#### 1. Backend (Render Environment)
+Configure these variables in your Render Web Service dashboard under **Environment**:
+*   `NODE_ENV`: Set to `production`
+*   `PORT`: `5000` (Render will override this dynamically)
+*   `MONGO_URI`: Your MongoDB Atlas Connection String
+*   `JWT_SECRET`: A strong, secure secret string for signing JWT tokens
+*   `GEMINI_API_KEY`: Your Google Gemini API Key
+*   `CLIENT_URL`: The production URL of the frontend (e.g., `https://YOUR-VERCEL-APP.vercel.app`)
+*   `BACKEND_URL`: The production URL of the backend (e.g., `https://YOUR-RENDER-APP.onrender.com`)
+*   `GOOGLE_CLIENT_ID`: Your Google OAuth Client ID (obtained from Google Developer Console)
+*   `GOOGLE_CLIENT_SECRET`: Your Google OAuth Client Secret (obtained from Google Developer Console)
+
+#### 2. Frontend (Vercel Environment)
+Configure these variables in your Vercel Project settings under **Environment Variables**:
+*   `VITE_API_URL`: The production URL of the backend (e.g., `https://YOUR-RENDER-APP.onrender.com`)
+
+---
+
+### 📝 Step-by-Step Deployment Instructions
+
+#### Part A: Deploying Backend to Render
+1.  Sign in to [Render](https://render.com/).
+2.  Click **New +** and select **Web Service**.
+3.  Connect your GitHub repository.
+4.  Configure the service details:
+    *   **Name**: `krishi-ai-advisor-backend`
+    *   **Root Directory**: `backend`
+    *   **Runtime**: `Node`
+    *   **Build Command**: `npm install`
+    *   **Start Command**: `npm start`
+5.  Under **Advanced**, add the Environment Variables specified in the section above.
+6.  Click **Create Web Service**.
+
+#### Part B: Deploying Frontend to Vercel
+1.  Sign in to [Vercel](https://vercel.com/).
+2.  Click **Add New** and select **Project**.
+3.  Import your GitHub repository.
+4.  In the configuration page, configure:
+    *   **Framework Preset**: `Vite` or `Other`
+    *   **Root Directory**: `frontend`
+    *   **Build Command**: `npm run build`
+    *   **Output Directory**: `dist`
+5.  Add the Environment Variables (e.g., `VITE_API_URL=https://YOUR-RENDER-APP.onrender.com`).
+6.  Click **Deploy**.
+
+---
+
+### 💤 Known Free Tier Limitations (Render)
+*   **Spin Down (Sleep)**: Render's free tier Web Services spin down (go to sleep) after **15 minutes of inactivity**. 
+*   **Initial Delay**: When a user accesses the app after a period of inactivity, the first backend request (e.g., login or database queries) might take **50–120 seconds** to respond while the server boots up. This is a normal behavior of free hosting resources. Once awake, the server responds with standard low latency.
+
+---
+
+### 🔐 Google OAuth Configuration Update
+When deploying to production, the developer must manually update the credentials on Google Cloud Console:
+1.  Go to the **APIs & Services > Credentials** page in the [Google Cloud Console](https://console.cloud.google.com).
+2.  Select your OAuth 2.0 Client ID.
+3.  Update **Authorized JavaScript Origins** to include your Vercel deployment URL (e.g., `https://YOUR-VERCEL-APP.vercel.app`).
+4.  Update **Authorized Redirect URIs** to point to the production callback route (e.g., `https://YOUR-RENDER-APP.onrender.com/api/auth/google/callback`).
+5.  Save changes. (Note: It may take a few minutes for Google's servers to apply the updates).
