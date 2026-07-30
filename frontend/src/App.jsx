@@ -80,7 +80,9 @@ function MainAppContent() {
       setHistoryList(historyRes.data);
     } catch (err) {
       console.error("Initialization error:", err);
-      setApiError(`Could not connect to the backend server. Please verify it is running on ${import.meta.env.VITE_API_URL || "http://localhost:5000"}.`);
+      const rawBaseURL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiBaseURL = rawBaseURL.replace(/\/$/, "");
+      setApiError(`Could not connect to the backend server. Please verify it is running on ${apiBaseURL}.`);
     } finally {
       setLoadingHistory(false);
     }

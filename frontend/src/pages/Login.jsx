@@ -67,7 +67,8 @@ export default function Login() {
 
   const handleGoogleLogin = () => {
     // Redirect to the backend Passport Google OAuth route
-    const apiBaseURL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const rawBaseURL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const apiBaseURL = rawBaseURL.replace(/\/$/, "");
     window.location.href = `${apiBaseURL}/api/auth/google`;
   };
 
