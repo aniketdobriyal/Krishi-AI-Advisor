@@ -122,19 +122,21 @@ export const getProfile = async (req, res, next) => {
 // @route   GET /api/auth/google/callback
 // @access  Private (internal OAuth redirect callback)
 export const googleCallback = async (req, res, next) => {
+  const rawClientURL = process.env.CLIENT_URL || "http://localhost:5173";
+  const clientURL = rawClientURL.replace(/\/$/, "");
   try {
     const user = req.user;
     if (!user) {
-      return res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/login?error=GoogleAuthFailed`);
+      return res.redirect(`${clientURL}/login?error=GoogleAuthFailed`);
     }
 
     // Generate JWT
     const token = generateToken(user);
 
     // Redirect to frontend login/callback landing with token
-    return res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/login?token=${token}`);
+    return res.redirect(`${clientURL}/login?token=${token}`);
   } catch (err) {
     console.error("Google OAuth Callback processing error:", err);
-    return res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/login?error=InternalServerError`);
+    return res.redirect(`${clientURL}/login?error=InternalServerError`);
   }
 };

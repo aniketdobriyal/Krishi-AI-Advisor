@@ -14,7 +14,8 @@ app.use(helmet());
 app.disable("x-powered-by");
 
 // Configure CORS to allow access only from the React frontend origin
-const corsOrigin = process.env.CLIENT_URL || "http://localhost:5173";
+const rawClientURL = process.env.CLIENT_URL || "http://localhost:5173";
+const corsOrigin = rawClientURL.replace(/\/$/, "");
 app.use(cors({
   origin: corsOrigin,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],

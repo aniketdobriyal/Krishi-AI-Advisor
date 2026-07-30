@@ -28,7 +28,9 @@ if (fs.existsSync(envPath)) {
 // These are managed dynamically via environment variables (CLIENT_URL and BACKEND_URL) and must NOT be hardcoded.
 const clientID = process.env.GOOGLE_CLIENT_ID || "dummy_google_client_id";
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET || "dummy_google_client_secret";
-const callbackURL = `${process.env.BACKEND_URL || "http://localhost:5000"}/api/auth/google/callback`;
+const rawBackendURL = process.env.BACKEND_URL || "http://localhost:5000";
+const backendURL = rawBackendURL.replace(/\/$/, "");
+const callbackURL = `${backendURL}/api/auth/google/callback`;
 
 passport.use(
   new GoogleStrategy(
