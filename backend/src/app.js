@@ -16,8 +16,10 @@ app.disable("x-powered-by");
 // Configure CORS to allow access only from the React frontend origin
 const rawClientURL = process.env.CLIENT_URL || "http://localhost:5173";
 const corsOrigin = rawClientURL.replace(/\/$/, "");
+const allowedOrigins = [corsOrigin, "http://localhost:5173", "http://127.0.0.1:5173"];
+
 app.use(cors({
-  origin: corsOrigin,
+  origin: allowedOrigins,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
