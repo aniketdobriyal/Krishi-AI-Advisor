@@ -247,6 +247,9 @@ const getModelDisplayName = () => {
 
 const classifyError = (error) => {
   if (!error) return "API unavailable";
+  if (error.status === 429) {
+    return "Rate limit exceeded";
+  }
   const msg = error.message ? error.message.toLowerCase() : "";
   if (msg.includes("quota") || msg.includes("429") || msg.includes("rate limit") || msg.includes("too many requests")) {
     return "Rate limit exceeded";
