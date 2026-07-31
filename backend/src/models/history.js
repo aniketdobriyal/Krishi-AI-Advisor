@@ -24,6 +24,18 @@ const messageSchema = new mongoose.Schema({
   advisory: {
     type: advisorySchema,
     default: null
+  },
+  source: {
+    type: String,
+    default: null
+  },
+  model: {
+    type: String,
+    default: null
+  },
+  fallbackReason: {
+    type: String,
+    default: null
   }
 }, { _id: false });
 

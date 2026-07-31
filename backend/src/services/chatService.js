@@ -230,17 +230,55 @@ export async function getOfflineAdvisory(query, isHindi = false) {
   };
 }
 
+// Global status cache derived from actual requests
+export let lastChatStatus = {
+  online: !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== ""),
+  fallbackReason: null,
+  lastChecked: Date.now()
+};
+
+const getModelDisplayName = () => {
+  const modelName = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+  return modelName
+    .split("-")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+const classifyError = (error) => {
+  if (!error) return "API unavailable";
+  const msg = error.message ? error.message.toLowerCase() : "";
+  if (msg.includes("quota") || msg.includes("429") || msg.includes("rate limit") || msg.includes("too many requests")) {
+    return "Rate limit exceeded";
+  }
+  if (msg.includes("timeout") || msg.includes("etimedout")) {
+    return "Timeout";
+  }
+  if (msg.includes("network") || msg.includes("econnrefused") || msg.includes("fetch")) {
+    return "Network error";
+  }
+  if (msg.includes("503") || msg.includes("service unavailable") || msg.includes("not found") || msg.includes("404")) {
+    return "API unavailable";
+  }
+  return "API unavailable";
+};
+
 class ChatService {
   async ask(query, isHindi = false, temp = 0.2) {
     const model = getGeminiModel();
     if (!model) {
       console.log("No Gemini API key detected, triggering offline keyword diagnostics.");
-      // Return offline mock after a short artificial delay to simulate network latency
-      return new Promise((resolve) => {
-        setTimeout(async () => {
-          resolve(await getOfflineAdvisory(query, isHindi));
-        }, 1200);
-      });
+      lastChatStatus.online = false;
+      lastChatStatus.fallbackReason = "API unavailable";
+      lastChatStatus.lastChecked = Date.now();
+
+      const offlineResponse = await getOfflineAdvisory(query, isHindi);
+      return {
+        response: offlineResponse,
+        source: "offline",
+        model: getModelDisplayName(),
+        fallbackReason: "API unavailable"
+      };
     }
 
     try {
@@ -295,21 +333,21 @@ User Query: "${query}"
 Language: Respond in ${languageText}
 `;
 
-   const result = await model.generateContent({
-  contents: [
-    {
-      role: "user",
-      parts: [
-        {
-          text: systemPrompt
+      const result = await model.generateContent({
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: systemPrompt
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: parseFloat(temp) || 0.2
         }
-      ]
-    }
-  ],
-  generationConfig: {
-    temperature: parseFloat(temp) || 0.2
-  }
-});
+      });
       const response = await result.response;
       const responseText = response.text().trim();
 
@@ -319,19 +357,20 @@ Language: Respond in ${languageText}
         jsonText = jsonText.replace(/^```(json)?/, "").replace(/```$/, "").trim();
       }
 
+      let parsedAdvisory;
       try {
-        const parsedAdvisory = JSON.parse(jsonText);
+        const parsed = JSON.parse(jsonText);
         const requiredKeys = ["problem", "causes", "actions", "precautions", "disclaimer"];
-        const hasAllKeys = requiredKeys.every(key => key in parsedAdvisory);
+        const hasAllKeys = requiredKeys.every(key => key in parsed);
 
         if (hasAllKeys) {
-          return parsedAdvisory;
+          parsedAdvisory = parsed;
+        } else {
+          throw new Error("Missing keys in JSON");
         }
-        throw new Error("Missing keys in JSON");
       } catch (e) {
         console.warn("Gemini response was not formatted in structured JSON. Parsing manually...", e);
-        
-        return {
+        parsedAdvisory = {
           problem: isHindi ? "विशेषज्ञ एआई विश्लेषण रिपोर्ट" : "AI Specialist Diagnostic Report",
           causes: responseText.slice(0, 400) + "...",
           actions: isHindi ? "कृपया सलाह के मुख्य विवरण को नीचे दी गई प्रतिक्रिया में पढ़ें।" : "Please read the full response details in the main stream.",
@@ -342,9 +381,35 @@ Language: Respond in ${languageText}
           rawText: responseText
         };
       }
+
+      // Successful call: update cache
+      lastChatStatus.online = true;
+      lastChatStatus.fallbackReason = null;
+      lastChatStatus.lastChecked = Date.now();
+
+      return {
+        response: parsedAdvisory,
+        source: "gemini",
+        model: getModelDisplayName(),
+        fallbackReason: null
+      };
+
     } catch (error) {
       console.error("Gemini API error in backend, falling back to local keywords:", error);
-      return await getOfflineAdvisory(query, isHindi);
+      const reason = classifyError(error);
+      
+      // Failed call: update cache
+      lastChatStatus.online = false;
+      lastChatStatus.fallbackReason = reason;
+      lastChatStatus.lastChecked = Date.now();
+
+      const offlineResponse = await getOfflineAdvisory(query, isHindi);
+      return {
+        response: offlineResponse,
+        source: "offline",
+        model: getModelDisplayName(),
+        fallbackReason: reason
+      };
     }
   }
 }

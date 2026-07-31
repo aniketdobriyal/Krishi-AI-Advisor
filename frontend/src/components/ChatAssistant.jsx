@@ -9,9 +9,44 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [activeSpeechId, setActiveSpeechId] = useState(null);
+  const [globalStatus, setGlobalStatus] = useState("online");
+  const [fallbackReason, setFallbackReason] = useState(null);
+  const [loadingStatusText, setLoadingStatusText] = useState("Connecting to Gemini...");
+
   const messagesEndRef = useRef(null);
   const ttsUtteranceRef = useRef(null);
   const recognitionRef = useRef(null);
+
+  const fetchStatus = async () => {
+    try {
+      const res = await API.get("/chat/status");
+      if (res.data && res.data.data) {
+        setGlobalStatus(res.data.data.online ? "online" : "offline");
+        setFallbackReason(res.data.data.fallbackReason);
+      }
+    } catch (err) {
+      console.error("Failed to fetch chat status:", err);
+      setGlobalStatus("offline");
+      setFallbackReason("Network error");
+    }
+  };
+
+  useEffect(() => {
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 20000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getMsgSource = (msg) => {
+    if (msg.source) return msg.source;
+    if (msg.advisory && msg.advisory.disclaimer) {
+      const disc = msg.advisory.disclaimer.toLowerCase();
+      if (disc.includes("offline") || disc.includes("ऑफ़लाइन") || disc.includes("triggered by blight-related keywords")) {
+        return "offline";
+      }
+    }
+    return "gemini";
+  };
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -49,21 +84,37 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
     setMessages(updatedMessages);
     setInput("");
     setLoading(true);
+    setLoadingStatusText(t.activeLanguage === "English" ? "Connecting to Gemini..." : "जेमिनी से कनेक्ट किया जा रहा है...");
 
     try {
       const isHindi = t.activeLanguage === "Hindi";
       // Ask Gemini via backend API
       const response = await API.post("/chat", { query: queryText, isHindi });
-      const data = response.data;
+      const data = response.data; // { response, source, model, fallbackReason }
+
+      if (data.source === "offline") {
+        setLoadingStatusText(t.activeLanguage === "English"
+          ? "Gemini unavailable. Switching to offline knowledge base."
+          : "जेमिनी अनुपलब्ध है। ऑफ़लाइन ज्ञान आधार पर स्विच किया जा रहा है।"
+        );
+        // Delay to show transition message
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
 
       setMessages([
         ...updatedMessages,
         {
           sender: "ai",
           isAdvisory: true,
-          advisory: data
+          advisory: data.response,
+          source: data.source,
+          model: data.model,
+          fallbackReason: data.fallbackReason
         }
       ]);
+      
+      // Update global indicator instantly
+      fetchStatus();
     } catch (err) {
       console.error(err);
       setMessages([
@@ -198,9 +249,22 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
             <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
               {t.welcomeChatTitle}
             </h3>
-            <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-              {apiKey ? t.onlineModeActive : t.offlineModeActive}
+            <span className="text-[10px] font-medium flex items-center gap-1.5 mt-0.5">
+              {globalStatus === "online" ? (
+                <>
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-extrabold uppercase tracking-wide">
+                    🟢 AI Service Online
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                  <span className="text-amber-600 dark:text-amber-400 font-extrabold uppercase tracking-wide" title={fallbackReason || ""}>
+                    🟡 Offline Knowledge Base Active
+                  </span>
+                </>
+              )}
             </span>
           </div>
         </div>
@@ -302,11 +366,24 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
                   
                   {/* Card Header Seal */}
                   <div className="relative border-b border-slate-100 dark:border-slate-800 px-6 py-3.5 bg-slate-50/50 dark:bg-slate-950/20 flex justify-between items-center seal-pattern">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mr-2">
                         {t.officialSealText}
                       </span>
+                      
+                      {/* Message Source Badge */}
+                      {getMsgSource(msg) === "gemini" ? (
+                        <div className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/10 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span>🟢 AI Online • Powered by {msg.model || "Gemini"}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-500/10 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide" title={msg.fallbackReason || ""}>
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                          <span>🟡 Offline Mode • Using Local Agricultural Knowledge Base</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex gap-2">
@@ -401,22 +478,39 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
 
         {/* Loading / Thinking Skeleton */}
         {loading && (
-          <div className="flex gap-4 justify-start">
-            <div className="h-9 w-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0">
-              <Loader className="h-5 w-5 animate-spin" />
+          <div className="space-y-3 animate-fadeIn">
+            {/* Status notice */}
+            <div className="flex gap-2 items-center text-xs font-semibold pl-1.5 transition-colors">
+              {loadingStatusText.includes("Gemini unavailable") || loadingStatusText.includes("जेमिनी अनुपलब्ध") ? (
+                <>
+                  <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                  <span className="text-amber-600 dark:text-amber-400">{loadingStatusText}</span>
+                </>
+              ) : (
+                <>
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
+                  <span className="text-slate-500 dark:text-slate-400">{loadingStatusText}</span>
+                </>
+              )}
             </div>
 
-            <div className="max-w-2xl w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-sm animate-pulse">
-              <div className="space-y-2">
-                <div className="h-3 w-24 bg-slate-200 dark:bg-slate-800 rounded"></div>
-                <div className="h-5 w-48 bg-slate-200 dark:bg-slate-800 rounded"></div>
+            <div className="flex gap-4 justify-start">
+              <div className="h-9 w-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+                <Loader className="h-5 w-5 animate-spin" />
               </div>
-              <div className="space-y-2">
-                <div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded"></div>
-                <div className="h-3 w-full bg-slate-200 dark:bg-slate-800 rounded"></div>
-                <div className="h-3 w-5/6 bg-slate-200 dark:bg-slate-800 rounded"></div>
+
+              <div className="max-w-2xl w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-sm animate-pulse">
+                <div className="space-y-2">
+                  <div className="h-3 w-24 bg-slate-200 dark:bg-slate-800 rounded"></div>
+                  <div className="h-5 w-48 bg-slate-200 dark:bg-slate-800 rounded"></div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded"></div>
+                  <div className="h-3 w-full bg-slate-200 dark:bg-slate-800 rounded"></div>
+                  <div className="h-3 w-5/6 bg-slate-200 dark:bg-slate-800 rounded"></div>
+                </div>
+                <div className="h-20 bg-slate-50 dark:bg-slate-950 rounded-xl"></div>
               </div>
-              <div className="h-20 bg-slate-50 dark:bg-slate-950 rounded-xl"></div>
             </div>
           </div>
         )}

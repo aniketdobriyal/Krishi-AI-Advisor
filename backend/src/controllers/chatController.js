@@ -1,4 +1,4 @@
-import chatService from "../services/chatService.js";
+import chatService, { lastChatStatus } from "../services/chatService.js";
 import Activity from "../models/Activity.js";
 
 export const askChat = async (req, res, next) => {
@@ -28,5 +28,16 @@ export const askChat = async (req, res, next) => {
     return res.status(200).json(advisory);
   } catch (error) {
     return next(error);
+  }
+};
+
+export const getChatStatus = async (req, res, next) => {
+  try {
+    return res.status(200).json({
+      status: "success",
+      data: lastChatStatus
+    });
+  } catch (err) {
+    return next(err);
   }
 };
