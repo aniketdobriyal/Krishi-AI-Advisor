@@ -18,12 +18,72 @@ export default function Guides({ t, activeSubTab }) {
   // Post-harvest checked list state
   const [checkedItems, setCheckedItems] = useState({});
 
+  const logActivity = async (action, descEn, descHi) => {
+    try {
+      await API.post("/activities", { action, descriptionEn: descEn, descriptionHi: descHi });
+    } catch (err) {
+      console.error("Failed to log activity:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSubTab === "post-harvest") {
+      logActivity(
+        "Post Harvest",
+        "Opened Storage Checklist",
+        "भंडारण चेकलिस्ट खोली"
+      );
+    } else if (activeSubTab === "disease") {
+      logActivity(
+        "Guide Viewed",
+        "Opened Disease Guide",
+        "रोग मार्गदर्शिका खोली"
+      );
+    } else if (activeSubTab === "pest") {
+      logActivity(
+        "Guide Viewed",
+        "Opened Pest Guide",
+        "कीट मार्गदर्शिका खोली"
+      );
+    }
+  }, [activeSubTab]);
+
+  useEffect(() => {
+    if (selectedDisease) {
+      const nameEn = selectedDisease.nameEn;
+      const nameHi = selectedDisease.nameHi;
+      const type = activeSubTab === "pest" ? "Pest" : "Disease";
+      const typeHi = activeSubTab === "pest" ? "कीट" : "रोग";
+      logActivity(
+        "Guide Viewed",
+        `Viewed ${type} Guide: "${nameEn}"`,
+        `${typeHi} मार्गदर्शिका देखी: "${nameHi}"`
+      );
+    }
+  }, [selectedDisease, activeSubTab]);
+
   const toggleCheck = (id, idx) => {
     const key = `${id}-${idx}`;
+    const newChecked = !checkedItems[key];
     setCheckedItems(prev => ({
       ...prev,
-      [key]: !prev[key]
+      [key]: newChecked
     }));
+
+    if (newChecked) {
+      const guide = postHarvestGuides.find(g => g.id === id);
+      if (guide) {
+        const itemEn = guide.itemsEn && guide.itemsEn[idx] ? guide.itemsEn[idx] : "Checklist Item";
+        const itemHi = guide.itemsHi && guide.itemsHi[idx] ? guide.itemsHi[idx] : "चेकलिस्ट आइटम";
+        const titleEn = guide.titleEn;
+        const titleHi = guide.titleHi;
+        logActivity(
+          "Post Harvest",
+          `Completed task: "${itemEn.length > 35 ? itemEn.substring(0, 35) + "..." : itemEn}" for ${titleEn}`,
+          `${titleHi} के लिए कार्य पूरा किया: "${itemHi.length > 35 ? itemHi.substring(0, 35) + "..." : itemHi}"`
+        );
+      }
+    }
   };
 
   const isHindi = t.activeLanguage === "Hindi";

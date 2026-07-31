@@ -7,6 +7,8 @@ import chatRoutes from "./chatRoutes.js";
 import historyRoutes from "./historyRoutes.js";
 import searchRoutes from "./searchRoutes.js";
 import authRoutes from "./authRoutes.js";
+import weatherRoutes from "./weatherRoutes.js";
+import activityRoutes from "./activityRoutes.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = Router();
@@ -19,6 +21,8 @@ router.use("/post-harvest", postHarvestRoutes);
 router.use("/chat", verifyToken, chatRoutes);
 router.use("/history", verifyToken, historyRoutes);
 router.use("/search", searchRoutes);
+router.use("/weather", weatherRoutes);
+router.use("/activities", verifyToken, activityRoutes);
 
 router.get("/config", (req, res) => {
   res.status(200).json({

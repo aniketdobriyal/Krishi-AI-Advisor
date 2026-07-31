@@ -11,6 +11,7 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
   const [activeSpeechId, setActiveSpeechId] = useState(null);
   const messagesEndRef = useRef(null);
   const ttsUtteranceRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -20,15 +21,22 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
   // Handle preset query loaded from dashboard alert click
   useEffect(() => {
     if (chatQuery) {
-      handleSend(chatQuery);
+      setInput(chatQuery);
       setChatQuery(""); // clear
     }
   }, [chatQuery]);
 
-  // Cleanup speech synthesis on unmount
+  // Cleanup speech synthesis and recognition on unmount
   useEffect(() => {
     return () => {
       window.speechSynthesis?.cancel();
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (err) {
+          // ignore
+        }
+      }
     };
   }, []);
 
@@ -72,37 +80,67 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
     }
   };
 
-  // Simulating Voice input (Speech to Text)
+  // Real browser Voice input (Speech to Text) using Web Speech API
   const handleVoiceInput = () => {
-    if (isListening || loading) return;
-    setIsListening(true);
-    
-    // Choose a voice query based on current language
-    const voiceQuery = t.activeLanguage === "English"
-      ? "My tomato leaves have yellow spots. What could be the reason?"
-      : "मेरे टमाटर के पत्तों पर पीले धब्बे हैं";
+    if (loading) return;
 
-    // Simulate listening animation, typing, and sending
-    let currentText = "";
-    let i = 0;
-    
-    setTimeout(() => {
-      setIsListening(false);
-      // Auto-type characters
-      const typingInterval = setInterval(() => {
-        if (i < voiceQuery.length) {
-          currentText += voiceQuery.charAt(i);
-          setInput(currentText);
-          i++;
-        } else {
-          clearInterval(typingInterval);
-          // Wait 500ms then send
-          setTimeout(() => {
-            handleSend(voiceQuery);
-          }, 500);
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert(t.activeLanguage === "Hindi"
+        ? "आपका ब्राउज़र वॉयस इनपुट का समर्थन नहीं करता है। कृपया क्रोम या एज का उपयोग करें।"
+        : "Your browser does not support voice input. Please try Chrome or Edge."
+      );
+      return;
+    }
+
+    if (isListening) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (err) {
+          // ignore
         }
-      }, 35);
-    }, 2500); // listen for 2.5 seconds
+      }
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.lang = t.activeLanguage === "Hindi" ? "hi-IN" : "en-IN";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          setInput(prev => {
+            const trimmed = prev.trim();
+            return trimmed ? `${trimmed} ${transcript}` : transcript;
+          });
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error("Failed to initialize speech recognition:", err);
+      setIsListening(false);
+    }
   };
 
   // Text-To-Speech (TTS) Reader
@@ -420,25 +458,28 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
           <button
             type="button"
             onClick={handleVoiceInput}
-            disabled={loading || isListening}
-            className={`rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition flex-shrink-0`}
+            disabled={loading}
+            className={isListening 
+              ? "rounded-xl border border-red-500/30 text-red-500 bg-red-50 dark:bg-red-950/20 p-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition flex-shrink-0 animate-pulse"
+              : "rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition flex-shrink-0"
+            }
             title={t.voiceButton}
           >
-            <Mic className="h-5 w-5" />
+            {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
           </button>
 
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            disabled={loading || isListening}
+            disabled={loading}
             placeholder={t.inputPlaceholder}
             className="flex-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 disabled:opacity-50"
           />
 
           <button
             type="submit"
-            disabled={!input.trim() || loading || isListening}
+            disabled={!input.trim() || loading}
             className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white p-3 cursor-pointer transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
           >
             <Send className="h-5 w-5" />
