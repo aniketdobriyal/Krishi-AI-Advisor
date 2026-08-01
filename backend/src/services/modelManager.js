@@ -1,7 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { modelConfig } from "../config/models.js";
 
-const apiKey = process.env.GEMINI_API_KEY;
 const cooldownCache = new Map();
 const COOLDOWN_DURATION = 10 * 60 * 1000; // 10 minutes
 
@@ -16,6 +15,7 @@ class ModelManager {
   }
 
   async executeRequest(systemPrompt, temp) {
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey || apiKey.trim() === "") {
       throw new Error("APIKeyMissing");
     }
