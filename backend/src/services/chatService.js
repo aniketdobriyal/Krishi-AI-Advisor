@@ -1,4 +1,4 @@
-import { getGeminiModel } from "../config/gemini.js";
+import modelManager from "./modelManager.js";
 import Disease from "../models/disease.js";
 import Pest from "../models/pest.js";
 import searchService from "./searchService.js";
@@ -237,14 +237,6 @@ export let lastChatStatus = {
   lastChecked: Date.now()
 };
 
-const getModelDisplayName = () => {
-  const modelName = process.env.GEMINI_MODEL || "gemini-2.0-flash";
-  return modelName
-    .split("-")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
-
 const classifyError = (error) => {
   if (!error) return "API unavailable";
   if (error.status === 429) {
@@ -268,8 +260,7 @@ const classifyError = (error) => {
 
 class ChatService {
   async ask(query, isHindi = false, temp = 0.2) {
-    const model = getGeminiModel();
-    if (!model) {
+    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY.trim() === "") {
       console.log("No Gemini API key detected, triggering offline keyword diagnostics.");
       lastChatStatus.online = false;
       lastChatStatus.fallbackReason = "API unavailable";
@@ -279,7 +270,7 @@ class ChatService {
       return {
         response: offlineResponse,
         source: "offline",
-        model: getModelDisplayName(),
+        model: "Local Knowledge Base",
         fallbackReason: "API unavailable"
       };
     }
@@ -336,23 +327,7 @@ User Query: "${query}"
 Language: Respond in ${languageText}
 `;
 
-      const result = await model.generateContent({
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: systemPrompt
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          temperature: parseFloat(temp) || 0.2
-        }
-      });
-      const response = await result.response;
-      const responseText = response.text().trim();
+      const { text: responseText, model: actualModel } = await modelManager.executeRequest(systemPrompt, temp);
 
       // Clean any markdown wrapper formatting if Gemini returned it despite instructions
       let jsonText = responseText;
@@ -393,12 +368,12 @@ Language: Respond in ${languageText}
       return {
         response: parsedAdvisory,
         source: "gemini",
-        model: getModelDisplayName(),
+        model: modelManager.getModelDisplayName(actualModel),
         fallbackReason: null
       };
 
     } catch (error) {
-      console.error("Gemini API error in backend, falling back to local keywords:", error);
+      console.error("AI Model Manager: all models failed, falling back to local database.", error);
       const reason = classifyError(error);
       
       // Failed call: update cache
@@ -410,7 +385,7 @@ Language: Respond in ${languageText}
       return {
         response: offlineResponse,
         source: "offline",
-        model: getModelDisplayName(),
+        model: "Local Knowledge Base",
         fallbackReason: reason
       };
     }
