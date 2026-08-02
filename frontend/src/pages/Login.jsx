@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Sprout, LogIn, Mail, Lock, AlertCircle, RefreshCw } from "lucide-react";
+import loginBg from "../assets/login-bg.png";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -73,8 +74,14 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 transition-colors duration-200">
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden animate-fadeIn">
+    <div 
+      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative p-4 transition-colors duration-200"
+      style={{ backgroundImage: `url(${loginBg})` }}
+    >
+      {/* Background Overlay */}
+      <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-[1px]" />
+      
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden animate-fadeIn relative z-10">
         <div className="p-8 space-y-6">
           
           {/* Logo Title area */}
