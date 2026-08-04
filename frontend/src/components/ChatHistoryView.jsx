@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Search, Calendar, MessageSquare, Trash2, ArrowUpRight, Inbox } from "lucide-react";
+import { useState } from "react";
+import { Search, Calendar, Trash2, ArrowUpRight, Inbox } from "lucide-react";
 
 export default function ChatHistoryView({ t, historyList, onLoadChat, onDeleteChat }) {
   const [historySearch, setHistorySearch] = useState("");

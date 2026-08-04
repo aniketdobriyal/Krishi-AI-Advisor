@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Key, Save, CheckCircle, Info, Sliders, Languages, Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
+import { Key, Save, CheckCircle, Info, Sliders, Eye, EyeOff } from "lucide-react";
 
 export default function SettingsView({ t, apiKey, setApiKey, temp, setTemp, onSave }) {
   const [localKey, setLocalKey] = useState(apiKey || "");

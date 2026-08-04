@@ -1,281 +1,311 @@
 # Krishi AI Advisor 🌾
 
-An AI-powered crop advisory dashboard prototype designed for field supervisors of the **Mandakini Organic Produce Collective** in Uttarakhand, India. 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://krishi-ai-advisor.vercel.app/)
+[![API Backend](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://krishi-ai-advisor.onrender.com/)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-18.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-4.19-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB Atlas](https://img.shields.io/badge/MongoDB%20Atlas-Cloud-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/cloud/atlas)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4.3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Google Gemini](https://img.shields.io/badge/Gemini%20AI-3.6%20Flash-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
+[![JWT Auth](https://img.shields.io/badge/JWT-Protected-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
 
-The application provides supervisors with instant, actionable guidance on crop diseases, organic pest management, and post-harvest compliance, helping bridge the gap when agricultural extension officers are not immediately reachable in remote mountain block fields.
+> An AI-powered agricultural advisory web application engineered for field supervisors of the **Mandakini Organic Produce Collective** in Uttarakhand, India. The platform bridges the gap when local extension officers are unreachable in remote mountain block fields by delivering instant, localized, and organic crop advisory.
 
 ---
 
-## 🌟 Key Features
+## 🔗 Live Demo & Deployment URLs
 
-*   💬 **AI-Powered Advisor Chat**: Interactive conversational interface that queries a public LLM API (**Gemini 1.5 Flash**) configured with custom prompt constraints tailored to Uttarakhand mountain crops and organic farming practices.
-*   📴 **Robust Offline Fallback**: In low-connectivity or offline mountainous regions, a built-in search engine automatically scans local disease and pest databases for instant symptom matching and structured responses.
-*   🎙️ **Voice Assistance**: Simulates microphone voice dictation with visual soundwave animation and typing feedback to support supervisors dictating queries in field conditions.
-*   🔊 **Bilingual Text-to-Speech (TTS)**: Reads advisory sections aloud in clear, synthesized voice formats (supporting both Indian Hindi `hi-IN` and English `en-US`).
-*   🌐 **Full Devanagari Localization**: Swaps all user interface cards, databases, settings, alerts, and instructions instantly between English and Hindi.
-*   📚 **Interactive Field Guides**:
-    *   **Disease Guide**: Crop-filtered directory of regional conditions (Late Blight, Powdery Mildew, Rust, etc.) with organic and biological treatment details.
-    *   **Pest Guide**: Reference guide for insect biology, preventions, and control actions.
-    *   **Post-Harvest Guide**: Dynamic compliance checklists (Curing, Sorting, Temperature Control, Transit checks) with progress persistence.
-*   💾 **Session Logs**: Locally saves diagnostics and chatbot sessions, allowing supervisors to reload previous advisor advice or delete logs.
+- 🚀 **Live Deployed Frontend**: [https://krishi-ai-advisor.vercel.app/](https://krishi-ai-advisor.vercel.app/)
+- ⚡ **Production Backend API**: [https://krishi-ai-advisor.onrender.com/](https://krishi-ai-advisor.onrender.com/)
+- 🎥 **Demo Video**: *[Recording in Progress — Video Walkthrough Placeholder]*
+
+---
+
+## 📷 Screenshots & Interface Preview
+
+### 1. Database Schema & Document Model
+![Krishi AI Advisor Database Schema](./W5_SchemaDiagram_TBI-26100505.png)
+
+### 2. User Authentication & Login Portal
+![Login Portal](./frontend/src/assets/login-bg.png)
+
+### 3. Field Supervisor Dashboard & AI Advisory Interface
+![Supervisor Dashboard](./frontend/src/assets/hero.png)
+
+---
+
+## ✨ Key Features
+
+- 🌾 **AI-Powered Organic Crop Advisor**: Tailored specifically for Himalayan mountain farming (Tomatoes, Potatoes, Wheat, Paddy, Rajma, Mustard, Brinjal). Generates structured advisory cards (Problem, Causes, Organic Actions, Precautions, Disclaimer).
+- 📴 **Zero-Downtime Offline Fallback Engine**: If internet connectivity is lost or Gemini API quota is exhausted, an offline regex diagnostic engine scans pre-seeded disease and pest databases to instantly present matching advice.
+- 🏷️ **AI Source Indicators**: Clear UI badges distinguish whether an advisory response came from **Online Gemini AI** or **Offline Knowledge Base**.
+- 🎙️ **Voice Assistant & Speech Dictation**: Browser-native voice input for hands-free queries in field conditions, featuring real-time audio wave visualization.
+- 🔊 **Bilingual Text-to-Speech (TTS)**: Synthesizes voice playback for advisories in both Indian Hindi (`hi-IN`) and English (`en-US`).
+- 🌐 **Full Devanagari Localization**: Instant toggle between English and Hindi for all UI elements, cards, guide categories, and weather alerts.
+- 🌦️ **Weather Alert & Risk Engine**: Integrates Open-Meteo weather parameters to detect agricultural risks (Frost, Cloudburst, High Humidity) and provide preventive crop tips.
+- 📚 **Comprehensive Field Guides**: Interactive reference manuals for Crop Diseases, Organic Pest Management, and Post-Harvest compliance.
+- 🔐 **Security & Multitenancy**: User-scoped session logs, JWT state management, Google OAuth 2.0 integration, bcrypt password hashing, and express-rate-limit brute force protection.
 
 ---
 
 ## 🛠️ Technology Stack
 
-*   **Frontend**: React 19 & Vite 8 (ESM setup), Axios
-*   **Backend**: Node.js & Express.js MVC Architecture
-*   **Styling**: Tailwind CSS v4 (Harmony green-accented theme)
-*   **Animations**: Framer Motion 12 (Micro-animations and transitions)
-*   **Icons**: Lucide React
-*   **Integration**: Google Generative AI Node SDK (`@google/generative-ai`)
-*   **Dev Utilities**: Nodemon, CORS, dotenv
+| Layer | Technologies & Tools |
+| :--- | :--- |
+| **Frontend Core** | React 19, Vite 8, React Router v7 |
+| **Styling & UI** | Tailwind CSS v4, Lucide React Icons, Framer Motion 12 |
+| **HTTP Client** | Axios (JWT Authorization Attach & 401 Expiration Interceptors) |
+| **Speech Engine** | Web Speech API (`webkitSpeechRecognition` & `window.speechSynthesis`) |
+| **Backend Framework** | Node.js (ES Modules), Express.js (MVC Architecture) |
+| **Database** | MongoDB Atlas Cloud via Mongoose ODM |
+| **AI Integration** | Google Generative AI Node SDK (`@google/generative-ai`) |
+| **Security & Auth** | JsonWebToken, Bcrypt, Passport.js (Google OAuth 2.0), Helmet, Express Rate Limit |
+| **Hosting** | Vercel (Frontend SPA) & Render (Backend Web Service) |
 
 ---
 
-## 🛡️ Data Privacy & Security Model (Week 6 Upgrade)
-
-The application incorporates a robust User Authentication and Security hardening model:
-*   🔑 **JWT Authentication**: User login and registration backed by stateless JSON Web Tokens. Access tokens expire in 7 days and are attached automatically to outbound requests via Axios Request Interceptor.
-*   🔄 **Automatic Token Expiration Handling**: Axios Response Interceptor detects `401 Unauthorized` errors, automatically invalidates sessions by purging credentials from browser storage, and redirects the user to `/login` with a clear expiration alert.
-*   🔒 **Password Hardening**: User passwords are encrypted on the backend using `bcrypt` with 10 salt rounds. Under no circumstances are password hashes exposed or returned in API responses.
-*   🚦 **Request Rate Limiting**: Protects authentication endpoints (`/api/auth/register` and `/api/auth/login`) against brute force attacks using `express-rate-limit` (max 5 requests per 15 minutes).
-*   🛡️ **Helmet Hardening & Secure Headers**: Uses `helmet` middleware to set HTTP headers protecting against common vulnerabilities, and hides the `x-powered-by` header.
-*   🌐 **Google OAuth Integration**: Allows supervisors to authenticate seamlessly using Google Sign-In via Passport.js, storing account information with `provider: "google"`.
-*   🚀 **User-Scoped Multitenancy**: Restricts Chat History and Disease History queries to the logged-in user context. Default seeded history entries remain viewable to all.
-
----
-
-## 🤖 Responsible AI & Guardrails
-
-To prevent hallucinations and minimize risk to local crops, the advisor runs under strict guardrails:
-1.  **Extension Officer Disclaimer**: Every response includes a mandatory warning that advice should be verified with a licensed extension officer.
-2.  **Zero-Guessing Uncertainty Protocol**: If the symptoms provided are insufficient to diagnose a disease with reasonable confidence, the system prompts for more parameters (crop age, symptoms, weather conditions) instead of recommending treatments.
-3.  **Strict Organic Focus**: The advisory system is constrained to organic, biological, and non-chemical measures in accordance with the Collective's standards.
-
----
-
-## 🚀 Getting Started
+## 📦 Installation & Local Setup
 
 ### Prerequisites
+- Node.js (v18.x or higher)
+- npm (v9.x or higher)
+- MongoDB Atlas cluster connection string (or local MongoDB instance at `mongodb://127.0.0.1:27017`)
 
-*   Node.js (v18.x or higher recommended)
-*   npm (or yarn)
-*   MongoDB Instance (Local running at `mongodb://127.0.0.1:27017` or MongoDB Atlas Cluster)
+### Step 1: Clone Repository
+```bash
+git clone https://github.com/aniketdobriyal/Krishi-AI-Advisor.git
+cd Krishi-AI-Advisor
+```
 
-### Installation & Setup
+### Step 2: Install Backend Dependencies
+```bash
+cd backend
+npm install
+```
 
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/aniketdobriyal/Krishi-AI-Advisor.git
-    cd Krishi-AI-Advisor
-    ```
-
-2.  **Backend Setup**:
-    Navigate to the backend directory:
-    ```bash
-    cd backend
-    npm install
-    ```
-    Create a `.env` file by copying the example template:
-    ```bash
-    cp .env.example .env
-    ```
-    Open the `.env` file and input your Gemini API key and MongoDB URI connection string:
-    ```env
-    GEMINI_API_KEY=AI_zaSyYourKeyHere
-    MONGO_URI=mongodb://127.0.0.1:27017/krishi-ai-advisor
-    PORT=5000
-    ```
-    Start the backend server:
-    ```bash
-    npm run dev
-    ```
-    The server will connect to MongoDB, automatically seed default collections (Crops, Diseases, Pests, PostHarvest Guides, default History) if empty, and start listening on [http://localhost:5000](http://localhost:5000).
-
-3.  **Frontend Setup**:
-    Open a new terminal window, and navigate to the frontend directory:
-    ```bash
-    cd frontend
-    npm install
-    ```
-    Start the frontend dev server:
-    ```bash
-    npm run dev
-    ```
-    Open [http://localhost:5173](http://localhost:5173) in your browser.
+### Step 3: Install Frontend Dependencies
+```bash
+cd ../frontend
+npm install
+```
 
 ---
 
-## 🗄️ Database Integration & Choice (Week 5)
+## 🔑 Environment Variables
 
-### Database Choice: MongoDB Atlas
-MongoDB Atlas was selected for the **Krishi AI Advisor** for several reasons:
-- **Flexible Document Model**: Allows seamless storage of complex and nested structures such as advisory message histories and embedded dialog details without rigid SQL joins.
-- **Mongoose ODM Integration**: Provides strong schema validation, hooks, and clean MVC separation for data structures in Node.js.
-- **Reliable Persistence**: Replaces in-memory storage arrays so supervisor data survives server reloads and browser refreshes.
-- **Free Tier Availability**: Provides scalable, zero-cost cloud databases perfect for field testing and remote block supervisor deployments.
+### Backend Configuration (`backend/.env`)
+Create a `.env` file inside `backend/`:
 
-### Database Setup Instructions
-1. **Sign up**: Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) and register.
-2. **Create Cluster**: Create a free-tier shared cluster (M0) in your preferred region.
-3. **Database User**: Navigate to *Database Access* and create a user with read/write privileges.
-4. **Network Access**: Add IP `0.0.0.0/0` (allow access from anywhere) or whitelist your server's current IP.
-5. **Get URI**: Click *Connect*, choose *Drivers (Node.js)*, copy the connection string.
-6. **Configure ENV**: Paste it in `/backend/.env` under the variable `MONGO_URI` (replacing password and dbname placeholders).
+```env
+# Server Configuration
+PORT=5000
+NODE_ENV=development
 
----
+# Database Connection
+MONGO_URI=mongodb+srv://<db_user>:<password>@cluster0.xxx.mongodb.net/krishi_ai_advisor?retryWrites=true&w=majority
 
-## 🔌 REST API Endpoints
+# JWT & Application URLs
+JWT_SECRET=your_super_secret_jwt_key_here
+CLIENT_URL=http://localhost:5173
+BACKEND_URL=http://localhost:5000
 
-The Express backend exposes the following REST APIs under the `/api` prefix (all persistence is now database-backed via Mongoose):
+# Google OAuth Credentials
+GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 
-| Method | Endpoint | Description | Protected | Status Codes |
-| :--- | :--- | :--- | :--- | :--- |
-| **POST** | `/api/auth/register` | Registers a local user with validation & bcrypt | No | `201`, `400` |
-| **POST** | `/api/auth/login` | Authenticates local user, returns JWT and user profile | No | `200`, `401` |
-| **GET** | `/api/auth/google` | Initiates Google OAuth consent screen redirect | No | `302` |
-| **GET** | `/api/auth/google/callback` | Passport Google OAuth callback redirect | No | `302` |
-| **GET** | `/api/auth/profile` | Fetches active user profile details from JWT | Yes | `200`, `401` |
-| **GET** | `/api/crops` | Retrieves crops from MongoDB | No | `200` |
-| **GET** | `/api/diseases` | Retrieves all plant diseases from MongoDB | No | `200` |
-| **GET** | `/api/diseases/:id` | Retrieves details of a specific disease by ID | No | `200`, `404` |
-| **GET** | `/api/pests` | Retrieves all pests from MongoDB | No | `200` |
-| **GET** | `/api/post-harvest` | Retrieves post-harvest guides from MongoDB | No | `200` |
-| **POST** | `/api/chat` | AI Advisor prompt (queries Gemini with DB context) | Yes | `200`, `400`, `401` |
-| **GET** | `/api/history` | Retrieves saved user chat sessions from MongoDB | Yes | `200`, `401` |
-| **POST** | `/api/history` | Saves or updates user chat session in MongoDB | Yes | `200`, `201`, `400`, `401` |
-| **DELETE** | `/api/history/:id` | Deletes user chat session from MongoDB | Yes | `204`, `404`, `401` |
-| **GET** | `/api/search?q=` | Case-insensitive regex search across DB collections | No | `200`, `400` |
-| **GET** | `/api/config` | Returns whether the Gemini API key is configured | No | `200` |
+# AI Advisory Key
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+### Frontend Configuration (`frontend/.env`)
+Create a `.env` file inside `frontend/`:
+
+```env
+VITE_API_URL=http://localhost:5000
+```
 
 ---
 
-## 🗺️ Schema Diagram
+## 💻 Running Frontend
 
-Here is the professional entity relationship/schema diagram showing all collections, fields, and relationships designed and stored in MongoDB Atlas:
-
-![Krishi AI Advisor Database Schema Diagram](./W5_SchemaDiagram_TBI-26100505.png)
-
-The schema diagram is also exported to the root directory as:
-- Portable Document Format: [W5_SchemaDiagram_TBI-26100505.pdf](./W5_SchemaDiagram_TBI-26100505.pdf)
-- High-Resolution Image: [W5_SchemaDiagram_TBI-26100505.png](./W5_SchemaDiagram_TBI-26100505.png)
+In the `frontend/` directory, run:
+```bash
+npm run dev
+```
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 📁 Repository Structure
+## ⚙️ Running Backend
+
+In the `backend/` directory, run:
+```bash
+npm run dev
+```
+The server will automatically connect to MongoDB, seed default collections if empty, and listen on [http://localhost:5000](http://localhost:5000).
+
+---
+
+## 🔌 API Endpoints Summary
+
+| Method | Endpoint | Protection | Description |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/api/auth/register` | Public | Registers a new supervisor account with bcrypt hashing |
+| **POST** | `/api/auth/login` | Public | Authenticates credentials and returns 7-day JWT token |
+| **GET** | `/api/auth/google` | Public | Initiates Google OAuth 2.0 authentication redirect |
+| **GET** | `/api/auth/google/callback` | Public | Passport Google OAuth callback redirect handler |
+| **GET** | `/api/auth/profile` | Protected | Fetches active authenticated user profile |
+| **GET** | `/api/crops` | Public | Returns agricultural crops directory |
+| **GET** | `/api/diseases` | Public | Returns plant disease directory with treatments |
+| **GET** | `/api/pests` | Public | Returns organic pest management reference guide |
+| **GET** | `/api/post-harvest` | Public | Returns post-harvest handling & storage checklists |
+| **POST** | `/api/chat` | Protected | Submits prompt to Gemini AI / Offline Fallback engine |
+| **GET** | `/api/history` | Protected | Retrieves user-scoped saved diagnostic chat sessions |
+| **POST** | `/api/history` | Protected | Saves or updates active chat session in MongoDB |
+| **DELETE** | `/api/history/:id` | Protected | Deletes specified diagnostic session |
+| **GET** | `/api/search?q=` | Public | Global regex search across crops, diseases, and guides |
+| **GET** | `/api/weather` | Public | Returns localized weather risks and preventive advice |
+| **GET** | `/api/activities` | Protected | Returns user-scoped activity logs |
+| **GET** | `/api/config` | Public | Checks backend Gemini API key configuration status |
+
+---
+
+## 📂 Folder Structure
 
 ```
 Krishi-AI-Advisor/
-├── W4_APICollection_TBI-26100505.json            # Postman REST collection
-├── W4_FrontendBackendConnection_TBI-26100505.pdf  # Week 4 PDF Verification Report
-├── W5_SchemaDiagram_TBI-26100505.pdf             # Week 5 Database Schema (PDF)
-├── W5_SchemaDiagram_TBI-26100505.png             # Week 5 Database Schema (PNG)
-├── W5_CRUDVerification_TBI-26100505.pdf          # Week 5 CRUD Verification Report (PDF)
-├── backend/             # Express.js MVC backend
-│   ├── .env.example     # Environment template
-│   ├── .gitignore       # Exclusion rules (node_modules, .env)
-│   ├── package.json     # Scripts and server dependencies
+├── backend/
+│   ├── .env.example
+│   ├── package.json
 │   └── src/
-│       ├── app.js       # Middleware, helmet, CORS, passport, and routes config
-│       ├── server.js    # Entrypoint, DB connection and startup
-│       ├── config/
-│       │   ├── db.js    # Seed database contents
-│       │   ├── mongoose.js # MongoDB connection module
-│       │   ├── seed.js  # Seeder function to auto-populate collections
-│       │   ├── gemini.js# Generative AI client initialization
-│       │   └── passport.js # Google OAuth passport configuration
-│       ├── models/      # Mongoose Schemas (User, Crop, Disease, Pest, PostHarvest, History)
-│       ├── controllers/ # Controllers (authController, chatController, historyController, etc.)
-│       ├── services/    # Business services (authService, chatService, searchService, etc.)
-│       ├── routes/      # REST routing (authRoutes, chatRoutes, historyRoutes, etc.)
-│       └── middleware/  # Middlewares (verifyToken, errorHandler)
-└── frontend/            # React Vite client code
-    ├── .gitignore       # Client exclusion rules
-    ├── package.json     # Client scripts and dependencies
-    ├── vite.config.js   # Vite config
-    └── src/
-        ├── App.jsx      # UI router, main protected dashboard shell layout
-        ├── api.js       # Axios base instance, JWT attach request, & 401 response interceptors
-        ├── main.jsx      # React mounting entrypoint, wraps App in AuthProvider and BrowserRouter
-        ├── data.js       # UI static texts and translations
-        ├── components/   # Modular dashboard views, ProtectedRoute
-        ├── context/      # React contexts (AuthContext)
-        ├── pages/        # Views (Login, Register)
-        └── services/     # Axios API requests (authService)
+│       ├── app.js       # Express middleware, Helmet, CORS, Passport, routes
+│       ├── server.js    # Entrypoint, Mongo connection, environment validation
+│       ├── config/      # db, gemini, models, mongoose, passport, seed
+│       ├── controllers/ # auth, chat, disease, history, weather, etc.
+│       ├── middleware/  # verifyToken, errorHandler
+│       ├── models/      # Mongoose schemas (User, Crop, Disease, Pest, etc.)
+│       ├── routes/      # Express API routers
+│       └── services/    # chatService, modelManager, searchService, weatherService
+├── frontend/
+│   ├── .env.example
+│   ├── package.json
+│   ├── vite.config.js
+│   └── src/
+│       ├── App.jsx      # Core layout, state routing, header navigation
+│       ├── api.js       # Axios base instance with JWT & 401 interceptors
+│       ├── components/  # ChatAssistant, DashboardOverview, Guides, Settings, etc.
+│       ├── context/     # AuthContext provider
+│       ├── pages/       # Login and Register pages
+│       └── services/    # Client API request helpers
+├── deployment_checklist.md
+├── API_REFERENCE.md
+├── CONTRIBUTING.md
+├── W5_SchemaDiagram_TBI-26100505.png
+└── README.md
 ```
 
 ---
 
-## 🌐 Production Deployment
+## 🏗️ Architecture Overview
 
-The project is structured to be deployed with the **Frontend on Vercel** and the **Backend on Render**.
+```
+ [ React 19 Frontend (Vite) ]
+              │
+    (HTTP + JWT Header)
+              ▼
+   [ Node.js / Express API ] ◄───────► [ MongoDB Atlas Cloud ]
+              │
+    ┌─────────┴─────────┐
+    ▼                   ▼
+[ Gemini AI SDK ]   [ Open-Meteo Weather API ]
+(Dynamic Failover)  (Risk Calculations)
+```
 
-### 🔗 Deployed URLs (Placeholders)
-*   **Frontend (Vercel)**: `https://YOUR-VERCEL-APP.vercel.app`
-*   **Backend (Render)**: `https://YOUR-RENDER-APP.onrender.com`
-
----
-
-### 🔑 Environment Variables Setup
-
-#### 1. Backend (Render Environment)
-Configure these variables in your Render Web Service dashboard under **Environment**:
-*   `NODE_ENV`: Set to `production`
-*   `PORT`: `5000` (Render will override this dynamically)
-*   `MONGO_URI`: Your MongoDB Atlas Connection String
-*   `JWT_SECRET`: A strong, secure secret string for signing JWT tokens
-*   `GEMINI_API_KEY`: Your Google Gemini API Key
-*   `CLIENT_URL`: The production URL of the frontend (e.g., `https://YOUR-VERCEL-APP.vercel.app`)
-*   `BACKEND_URL`: The production URL of the backend (e.g., `https://YOUR-RENDER-APP.onrender.com`)
-*   `GOOGLE_CLIENT_ID`: Your Google OAuth Client ID (obtained from Google Developer Console)
-*   `GOOGLE_CLIENT_SECRET`: Your Google OAuth Client Secret (obtained from Google Developer Console)
-
-#### 2. Frontend (Vercel Environment)
-Configure these variables in your Vercel Project settings under **Environment Variables**:
-*   `VITE_API_URL`: The production URL of the backend (e.g., `https://YOUR-RENDER-APP.onrender.com`)
+1. **Client Layer**: React 19 SPA running on Vite. Manages user interface, voice recognition, speech synthesis, local language preferences, and state synchronization.
+2. **REST API Layer**: Node.js and Express.js backend using MVC architecture. Uses `verifyToken` middleware to enforce JWT authorization on protected routes.
+3. **Database Layer**: MongoDB Atlas storing structured documents for Users, Crops, Diseases, Pests, Post-Harvest Guides, Chat Sessions, and Activity Logs.
+4. **External Integrations**:
+   - **Google Gemini API**: Online generative AI model.
+   - **Open-Meteo API**: Live weather forecasting data.
+   - **Google OAuth 2.0**: Passport.js single sign-on strategy.
 
 ---
 
-### 📝 Step-by-Step Deployment Instructions
+## 🤖 AI Feature Explanation & Multi-Model Engine
 
-#### Part A: Deploying Backend to Render
-1.  Sign in to [Render](https://render.com/).
-2.  Click **New +** and select **Web Service**.
-3.  Connect your GitHub repository.
-4.  Configure the service details:
-    *   **Name**: `krishi-ai-advisor-backend`
-    *   **Root Directory**: `backend`
-    *   **Runtime**: `Node`
-    *   **Build Command**: `npm install`
-    *   **Start Command**: `npm start`
-5.  Under **Advanced**, add the Environment Variables specified in the section above.
-6.  Click **Create Web Service**.
-
-#### Part B: Deploying Frontend to Vercel
-1.  Sign in to [Vercel](https://vercel.com/).
-2.  Click **Add New** and select **Project**.
-3.  Import your GitHub repository.
-4.  In the configuration page, configure:
-    *   **Framework Preset**: `Vite` or `Other`
-    *   **Root Directory**: `frontend`
-    *   **Build Command**: `npm run build`
-    *   **Output Directory**: `dist`
-5.  Add the Environment Variables (e.g., `VITE_API_URL=https://YOUR-RENDER-APP.onrender.com`).
-6.  Click **Deploy**.
+- **Dynamic Model Failover**: `ModelManager` maintains a priority cascade of Gemini models (`Gemini 3.6 Flash` -> `Gemini 3.5 Flash` -> `Gemini 3.5 Flash Lite` -> `Gemini 3.1 Flash Lite`).
+- **Cooldown Cache**: If a model returns rate-limit (429) or quota errors, it is placed in a 10-minute cooldown cache and the manager automatically fails over to the next candidate model.
+- **Offline Keyword Diagnostic Engine**: If `GEMINI_API_KEY` is missing or network connectivity is cut, `chatService` executes regex symptom matching against seeded crop diseases/pests to generate structured organic guidance.
+- **Organic Agriculture Guardrails**: System prompts enforce non-chemical biological remedies compliant with Mandakini Organic Collective guidelines.
+- **Source Transparency**: Every chat response returns an indicator (`gemini` or `offline`) displayed in the UI as a badge.
 
 ---
 
-### 💤 Known Free Tier Limitations (Render)
-*   **Spin Down (Sleep)**: Render's free tier Web Services spin down (go to sleep) after **15 minutes of inactivity**. 
-*   **Initial Delay**: When a user accesses the app after a period of inactivity, the first backend request (e.g., login or database queries) might take **50–120 seconds** to respond while the server boots up. This is a normal behavior of free hosting resources. Once awake, the server responds with standard low latency.
+## 🎙️ Voice Assistant & Text-to-Speech
+
+- **Hands-Free Field Input**: Uses the browser-native **Web Speech API** (`webkitSpeechRecognition`) to transcribe spoken field queries directly into the search bar.
+- **Supported Languages**: Recognizes speech in **Hindi (`hi-IN`)** and **English (`en-US`)**.
+- **Speech Synthesis (TTS)**: Built-in voice player using `window.speechSynthesis` reads out structured advisory sections in clear spoken Hindi or English.
+- **Browser Compatibility**: Supported natively on Chromium browsers (Google Chrome, Microsoft Edge, Brave) running over HTTPS or `localhost`.
 
 ---
 
-### 🔐 Google OAuth Configuration Update
-When deploying to production, the developer must manually update the credentials on Google Cloud Console:
-1.  Go to the **APIs & Services > Credentials** page in the [Google Cloud Console](https://console.cloud.google.com).
-2.  Select your OAuth 2.0 Client ID.
-3.  Update **Authorized JavaScript Origins** to include your Vercel deployment URL (e.g., `https://YOUR-VERCEL-APP.vercel.app`).
-4.  Update **Authorized Redirect URIs** to point to the production callback route (e.g., `https://YOUR-RENDER-APP.onrender.com/api/auth/google/callback`).
-5.  Save changes. (Note: It may take a few minutes for Google's servers to apply the updates).
+## 🌦️ Weather Alert System
+
+- **Himalayan Micro-climate Monitoring**: Fetches real-time temperature, relative humidity, wind speed, and precipitation data from Open-Meteo API.
+- **Threshold Analysis**: Automatically computes agricultural risks including **Frost Damage**, **High Humidity Blight Risk**, **Torrential Dew**, and **Cloudburst Safety**.
+- **Preventive Crop Recommendations**: Provides immediate actionable field tips (e.g., applying light night irrigation to protect tubers during frost warnings).
+
+---
+
+## 🔐 Authentication Flow & Security Hardening
+
+```
+User Login ──► Express /auth/login ──► Bcrypt Compare ──► Signed 7-Day JWT
+                                                                │
+Axios Interceptor ◄── Bearer Token Injected Into Requests ◄─────┘
+        │
+401 Unauthorized Detected ──► Purge Credentials ──► Redirect /login?expired=true
+```
+
+1. **Password Encryption**: Passwords are hashed with `bcrypt` (10 salt rounds).
+2. **JWT Authorization**: Stateless tokens expire in 7 days and are verified on protected routes.
+3. **Axios Interceptors**: Automatically attach token to outbound requests and catch `401 Unauthorized` responses to clear invalid sessions.
+4. **Rate Limiting**: Auth routes (`/api/auth/*`) are protected by `express-rate-limit` (max 5 requests per 15 minutes).
+5. **Security Headers**: Hardened with `helmet` middleware and hidden `x-powered-by` header.
+
+---
+
+## 🚀 Deployment Overview
+
+The application is deployed on production cloud services:
+
+- **Frontend**: Deployed on **Vercel** with single-page app rewrite rules (`vercel.json`).
+  - **Live URL**: [https://krishi-ai-advisor.vercel.app/](https://krishi-ai-advisor.vercel.app/)
+- **Backend**: Deployed on **Render** as a Node.js Web Service.
+  - **Live URL**: [https://krishi-ai-advisor.onrender.com/](https://krishi-ai-advisor.onrender.com/)
+- **Database**: **MongoDB Atlas** Cloud Cluster (`M0` shared tier).
+
+### 💤 Free-Tier Hosting Behavior
+Render's free tier spins down web services after **15 minutes of inactivity**. When opening the live app after a dormant period, the initial request (such as login or data fetching) may take **50–120 seconds** while the instance boots up. Subsequent requests respond with standard low latency.
+
+---
+
+## 🔮 Future Enhancements
+
+- 📸 **AI Plant Disease Image Diagnosis**: Integrate Gemini 3.6 Multimodal Vision to analyze leaf photos taken directly by field supervisor smartphones.
+- 📍 **GPS-Based Hyper-Local Weather**: Use geolocation to pinpoint field coordinates for block-level weather warnings and soil moisture estimation.
+- 🔔 **Push Notifications**: Web push notifications for sudden frost alerts and heavy rainfall warnings.
+- 📱 **Progressive Web App (PWA)**: Service worker caching and offline manifest for full installation on mobile devices without app store downloads.
+- 📊 **Cooperative Manager Analytics**: Dashboard view for collective directors to view aggregate disease outbreaks across different agricultural blocks.
+
+---
+
+## 🤝 Credits & Acknowledgements
+
+- **Mandakini Organic Produce Collective**: Regional agricultural context and organic crop management practices for Uttarakhand.
+- **Google DeepMind & Gemini Team**: Generative AI models and SDK.
+- **Open-Meteo**: Free weather forecasting API.
+- **Open Source Ecosystem**: React, Express, Mongoose, Tailwind CSS, Lucide Icons, Framer Motion, and Passport.js.

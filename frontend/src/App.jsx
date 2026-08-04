@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { 
-  LayoutDashboard, MessageSquare, ShieldAlert, Sprout, Leaf, 
-  History, Settings, Languages, Sun, Moon, Bell, Search, 
-  Menu, X, ChevronDown, Check, LogOut, ShieldCheck, RefreshCw, AlertCircle
+  LayoutDashboard, MessageSquare, ShieldAlert, Sprout, Leaf,
+  History, Settings, Sun, Moon, Bell, Search, 
+  Menu, X, ChevronDown, LogOut, RefreshCw, AlertCircle
 } from "lucide-react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 
@@ -89,6 +89,7 @@ function MainAppContent() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     initApp();
   }, []);
 

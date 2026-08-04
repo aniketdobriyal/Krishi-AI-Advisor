@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Sprout, LogIn, Mail, Lock, AlertCircle, RefreshCw } from "lucide-react";
@@ -23,6 +23,7 @@ export default function Login() {
     const oauthError = params.get("error");
 
     if (expired === "true") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInfoMessage("Session expired. Please login again.");
       // Clean up the URL search params so the message goes away on refresh
       navigate("/login", { replace: true });
@@ -35,7 +36,7 @@ export default function Login() {
         .then(() => {
           navigate("/");
         })
-        .catch((err) => {
+        .catch(() => {
           setError("Google login verification failed. Please try again.");
           setLoading(false);
         });

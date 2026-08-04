@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Mic, MicOff, Volume2, VolumeX, Bookmark, Plus, Loader, Info, HelpCircle, User, Bot, AlertTriangle, Sprout } from "lucide-react";
+import { Send, Mic, MicOff, Volume2, VolumeX, Bookmark, Loader, Info, HelpCircle, User, Bot, AlertTriangle, Sprout } from "lucide-react";
 import API from "../api";
 import { SUGGESTED_QUESTIONS } from "../data";
 
@@ -32,6 +32,7 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStatus();
     const interval = setInterval(fetchStatus, 20000);
     return () => clearInterval(interval);
@@ -56,10 +57,11 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
   // Handle preset query loaded from dashboard alert click
   useEffect(() => {
     if (chatQuery) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInput(chatQuery);
       setChatQuery(""); // clear
     }
-  }, [chatQuery]);
+  }, [chatQuery, setChatQuery]);
 
   // Cleanup speech synthesis and recognition on unmount
   useEffect(() => {
@@ -68,7 +70,7 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
-        } catch (err) {
+        } catch {
           // ignore
         }
       }
@@ -148,7 +150,7 @@ export default function ChatAssistant({ t, messages, setMessages, apiKey, onSave
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
-        } catch (err) {
+        } catch {
           // ignore
         }
       }

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Search, X, CheckSquare, Square, Info, ShieldAlert, Sprout, Leaf, ArrowRight, Eye, ClipboardList, RefreshCw, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, X, CheckSquare, Square, Info, Eye, ClipboardList, RefreshCw, AlertCircle } from "lucide-react";
 import API from "../api";
 
 export default function Guides({ t, activeSubTab }) {
@@ -115,6 +115,7 @@ export default function Guides({ t, activeSubTab }) {
 
   // Reset filter criteria when switching between sub-tabs
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearchQuery("");
     setSelectedCropFilter("all");
     setSelectedDisease(null);

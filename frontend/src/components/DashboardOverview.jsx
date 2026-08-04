@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { MessageSquare, ShieldAlert, Sprout, Leaf, Bookmark, ArrowRight, Sun, AlertTriangle } from "lucide-react";
 import API from "../api";
 
